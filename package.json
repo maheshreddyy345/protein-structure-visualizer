@@ -1,0 +1,37 @@
+{
+  "name": "protein-structure-visualizer",
+  "version": "1.0.0",
+  "description": "A web application for exploring protein structures from the AlphaFold database",
+  "main": "index.html",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setup.js"
+    ],
+    "testMatch": [
+      "**/test/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "js/**/*.js",
+      "!js/**/*.min.js"
+    ]
+  },
+  "keywords": [
+    "protein",
+    "structure",
+    "visualization",
+    "alphafold",
+    "biology"
+  ],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Protein Structure Visualizer</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Debug - Protein Structure Visualizer</h1>
+        <p>Testing current implementation</p>
+    </header>
+
+    <main>
+        <section class="section">
+            <h2>Current Implementation Status</h2>
+            <div id="debug-info">
+                <h3>✅ Completed Components:</h3>
+                <ul>
+                    <li><strong>Protein Model</strong> - Data management and validation</li>
+                    <li><strong>APIService</strong> - HTTP request handling and error management</li>
+                    <li><strong>Utility Functions</strong> - UniProt ID validation and formatting</li>
+                    <li><strong>Unit Tests</strong> - 59 passing tests with 97%+ coverage</li>
+                    <li><strong>UI Components</strong> - Basic structure and styling</li>
+                </ul>
+
+                <h3>🔧 Component Testing:</h3>
+                <div id="test-results"></div>
+                
+                <h3>🎯 Next Steps:</h3>
+                <ul>
+                    <li>Implement UniProt API integration</li>
+                    <li>Add AlphaFold structure fetching</li>
+                    <li>Complete 3D visualization functionality</li>
+                    <li>Add search results display</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Test Basic Functionality</h2>
+            <button id="test-protein-model">Test Protein Model</button>
+            <button id="test-api-service">Test API Service</button>
+            <button id="test-3dmol">Test 3Dmol.js</button>
+            <div id="test-output" style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;"></div>
+        </section>
+    </main>
+
+    <script src="js/models/Protein.js"></script>
+    <script src="js/services/APIService.js"></script>
+    <script src="js/utils/proteinUtils.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const testOutput = document.getElementById('test-output');
+            
+            function log(message, type = 'info') {
+                const div = document.createElement('div');
+                div.style.margin = '0.5rem 0';
+                div.style.padding = '0.5rem';
+                div.style.borderRadius = '4px';
+                
+                switch(type) {
+                    case 'success':
+                        div.style.background = '#d4edda';
+                        div.style.color = '#155724';
+                        div.innerHTML = `✅ ${message}`;
+                        break;
+                    case 'error':
+                        div.style.background = '#f8d7da';
+                        div.style.color = '#721c24';
+                        div.innerHTML = `❌ ${message}`;
+                        break;
+                    default:
+                        div.style.background = '#d1ecf1';
+                        div.style.color = '#0c5460';
+                        div.innerHTML = `ℹ️ ${message}`;
+                }
+                
+                testOutput.appendChild(div);
+            }
+            
+            // Test Protein Model
+            document.getElementById('test-protein-model').addEventListener('click', () => {
+                testOutput.innerHTML = '<h4>Testing Protein Model:</h4>';
+                
+                try {
+                    // Test valid protein creation
+                    const protein = new Protein('P69905', 'Hemoglobin', 'Homo sapiens');
+                    log(`Created protein: ${protein.uniprotId} - ${protein.name}`, 'success');
+                    
+                    // Test metadata update
+                    protein.updateMetadata({
+                        sequenceLength: 141,
+                        confidenceScore: 95.5,
+                        description: 'Oxygen transport protein'
+                    });
+                    log(`Updated metadata - Length: ${protein.sequenceLength}, Confidence: ${protein.confidenceScore}%`, 'success');
+                    
+                    // Test confidence level
+                    const level = protein.getConfidenceLevel();
+                    log(`Confidence level: ${level}`, 'success');
+                    
+                    // Test summary
+                    const summary = protein.getSummary();
+                    log(`Summary generated with ${Object.keys(summary).length} properties`, 'success');
+                    
+                    // Test validation
+                    const isValid = Protein.isValidUniProtId('P69905');
+                    log(`UniProt ID validation: ${isValid}`, 'success');
+                    
+                } catch (error) {
+                    log(`Protein model test failed: ${error.message}`, 'error');
+                }
+            });
+            
+            // Test API Service
+            document.getElementById('test-api-service').addEventListener('click', () => {
+                testOutput.innerHTML = '<h4>Testing API Service:</h4>';
+                
+                try {
+                    const apiService = new APIService();
+                    log(`APIService created with base URLs configured`, 'success');
+                    log(`AlphaFold URL: ${apiService.alphafoldBaseUrl}`, 'info');
+                    log(`UniProt URL: ${apiService.uniprotBaseUrl}`, 'info');
+                    
+                    // Test error handling
+                    const networkError = new Error('Network error');
+                    networkError.name = 'TypeError';
+                    const errorResponse = apiService.handleApiErrors(networkError);
+                    log(`Error handling test: ${errorResponse.type} - ${errorResponse.message}`, 'success');
+                    
+                    // Test parameter validation
+                    try {
+                        apiService.validateParams({ id: 'P69905' }, ['id', 'format']);
+                    } catch (validationError) {
+                        log(`Parameter validation working: ${validationError.message}`, 'success');
+                    }
+                    
+                } catch (error) {
+                    log(`API service test failed: ${error.message}`, 'error');
+                }
+            });
+            
+            // Test 3Dmol.js
+            document.getElementById('test-3dmol').addEventListener('click', () => {
+                testOutput.innerHTML = '<h4>Testing 3Dmol.js:</h4>';
+                
+                if (typeof $3Dmol !== 'undefined') {
+                    log(`3Dmol.js loaded successfully`, 'success');
+                    log(`Version: ${$3Dmol.version || 'Unknown'}`, 'info');
+                    
+                    // Test viewer creation
+                    try {
+                        const testDiv = document.createElement('div');
+                        testDiv.style.width = '100px';
+                        testDiv.style.height = '100px';
+                        document.body.appendChild(testDiv);
+                        
+                        const viewer = $3Dmol.createViewer(testDiv);
+                        log(`3Dmol viewer created successfully`, 'success');
+                        
+                        // Clean up
+                        document.body.removeChild(testDiv);
+                        
+                    } catch (error) {
+                        log(`3Dmol viewer creation failed: ${error.message}`, 'error');
+                    }
+                } else {
+                    log(`3Dmol.js not loaded`, 'error');
+                }
+            });
+            
+            // Initial status check
+            const testResults = document.getElementById('test-results');
+            testResults.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0;">
+                    <div style="padding: 1rem; background: #d4edda; border-radius: 4px;">
+                        <strong>✅ Protein Model</strong><br>
+                        <small>Data management ready</small>
+                    </div>
+                    <div style="padding: 1rem; background: #d4edda; border-radius: 4px;">
+                        <strong>✅ API Service</strong><br>
+                        <small>HTTP handling ready</small>
+                    </div>
+                    <div style="padding: 1rem; background: ${typeof $3Dmol !== 'undefined' ? '#d4edda' : '#f8d7da'}; border-radius: 4px;">
+                        <strong>${typeof $3Dmol !== 'undefined' ? '✅' : '❌'} 3Dmol.js</strong><br>
+                        <small>${typeof $3Dmol !== 'undefined' ? 'Library loaded' : 'Library not loaded'}</small>
+                    </div>
+                    <div style="padding: 1rem; background: #fff3cd; border-radius: 4px;">
+                        <strong>🔧 API Integration</strong><br>
+                        <small>Next task to implement</small>
+                    </div>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>

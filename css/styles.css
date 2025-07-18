@@ -1,0 +1,633 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f5f5;
+}
+
+/* Header styles */
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-align: center;
+    padding: 2rem 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* Main content */
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+/* Section styles */
+.section {
+    background: white;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.section h2 {
+    color: #667eea;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+}
+
+/* Search section */
+.search-container {
+    max-width: 600px;
+}
+
+.input-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+#search-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+#search-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+#search-button {
+    padding: 0.75rem 1.5rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+#search-button:hover {
+    background: #5a6fd8;
+}
+
+.results-container {
+    margin-top: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Info section */
+.info-container {
+    display: grid;
+    gap: 1rem;
+}
+
+/* Visualization section */
+.visualization-container {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    gap: 1rem;
+    min-height: 500px;
+}
+
+.controls {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.viewer {
+    background: #fff;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    position: relative;
+    min-height: 500px;
+}
+
+.legend {
+    grid-column: 1 / -1;
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+
+/* Loading indicator */
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading p {
+    color: white;
+    margin-top: 1rem;
+    font-size: 1.1rem;
+}
+
+/* Error styles */
+.error {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+}
+
+.error-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 500px;
+    text-align: center;
+}
+
+.error-content h3 {
+    color: #e74c3c;
+    margin-bottom: 1rem;
+}
+
+#error-close {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 2rem;
+    background: #333;
+    color: white;
+    margin-top: 2rem;
+}
+
+footer a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* Search results styles */
+.results-header {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+}
+
+.results-header h3 {
+    margin: 0;
+    color: #667eea;
+    font-size: 1.1rem;
+}
+
+.results-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.result-item {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.result-item:hover {
+    background-color: #f8f9fa;
+}
+
+.result-item:last-child {
+    border-bottom: none;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.protein-name {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+    flex: 1;
+}
+
+.uniprot-id {
+    background: #667eea;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-left: 1rem;
+}
+
+.result-details {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.result-details p {
+    margin: 0.25rem 0;
+}
+
+.select-protein-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+}
+
+.select-protein-btn:hover {
+    background: #218838;
+}
+
+/* Additional component styles */
+.no-results {
+    padding: 1rem;
+    text-align: center;
+    color: #666;
+}
+
+.no-results ul {
+    text-align: left;
+    display: inline-block;
+    margin-top: 0.5rem;
+}
+
+.spinner-small {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.loading-info, .error-info {
+    text-align: center;
+    padding: 2rem;
+}
+
+.viewer-loading, .viewer-error {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+}
+
+.control-group {
+    margin-bottom: 1rem;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.control-group select, .control-group button {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.control-group button {
+    background: #667eea;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.control-group button:hover {
+    background: #5a6fd8;
+}
+
+.confidence-score {
+    font-weight: bold;
+}
+
+/* Protein info display styles */
+.protein-details {
+    max-width: 800px;
+}
+
+.protein-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.protein-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.5rem;
+    flex: 1;
+}
+
+.uniprot-id-badge {
+    background: #667eea;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-left: 1rem;
+}
+
+.protein-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.info-item label {
+    font-weight: 600;
+    color: #555;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-item span {
+    font-size: 1rem;
+    color: #333;
+}
+
+.confidence-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tooltip-trigger {
+    cursor: help;
+    color: #667eea;
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.3s;
+}
+
+.tooltip-trigger:hover {
+    color: #5a6fd8;
+}
+
+.tooltip {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    max-width: 300px;
+    z-index: 1000;
+}
+
+.tooltip-content {
+    padding: 1rem;
+}
+
+.tooltip-content h4 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+    font-size: 1rem;
+}
+
+.tooltip-content p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.tooltip-content ul {
+    margin: 0.5rem 0;
+    padding-left: 1.2rem;
+}
+
+.tooltip-content li {
+    margin: 0.25rem 0;
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+
+.protein-description {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #667eea;
+}
+
+.protein-description label {
+    font-weight: 600;
+    color: #555;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.protein-description p {
+    margin: 0;
+    line-height: 1.5;
+    color: #333;
+}
+
+.protein-meta {
+    text-align: right;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.protein-meta small {
+    color: #666;
+    font-style: italic;
+}
+
+/* Legend styles */
+.legend-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.legend-item span:first-of-type {
+    flex: 1;
+    min-width: 200px;
+}
+
+.confidence-count {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 500;
+    background: #f8f9fa;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    margin-left: auto;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+    flex-shrink: 0;
+}
+
+.confidence-stats {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+    border-left: 4px solid #667eea;
+}
+
+.confidence-stats p {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+}
+
+.confidence-stats p:first-child {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.legend-note {
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+    margin: 0;
+    padding-top: 0.5rem;
+    border-top: 1px solid #eee;
+}
+
+/* 3D Viewer specific styles */
+#mol-viewer {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 500px;
+}
+
+.viewer canvas {
+    border-radius: 4px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .visualization-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    main {
+        padding: 1rem;
+    }
+    
+    .section {
+        padding: 1rem;
+    }
+    
+    .legend-content {
+        gap: 0.75rem;
+    }
+    
+    .legend-item {
+        font-size: 0.9rem;
+    }
+}

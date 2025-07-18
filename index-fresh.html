@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protein Structure Visualizer</title>
+    <link rel="stylesheet" href="css/styles.css?v=2">
+    <!-- 3Dmol.js library from CDN -->
+    <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Protein Structure Visualizer</h1>
+        <p>Explore protein structures from the AlphaFold database</p>
+    </header>
+
+    <main>
+        <!-- Search Section -->
+        <section id="search-section" class="section">
+            <h2>Search Proteins</h2>
+            <div class="search-container">
+                <form id="search-form">
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="search-input" 
+                            placeholder="Enter protein name or UniProt ID (e.g., hemoglobin or P69905)"
+                            required
+                        >
+                        <button type="submit" id="search-button">Search</button>
+                    </div>
+                </form>
+                <div id="search-results" class="results-container" style="display: none;">
+                    <!-- Search results will be populated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Protein Information Section -->
+        <section id="info-section" class="section" style="display: none;">
+            <h2>Protein Information</h2>
+            <div id="protein-info" class="info-container">
+                <!-- Protein details will be populated here -->
+            </div>
+        </section>
+
+        <!-- 3D Visualization Section -->
+        <section id="visualization-section" class="section" style="display: none;">
+            <h2>3D Structure Visualization</h2>
+            <div class="visualization-container">
+                <div id="visualization-controls" class="controls">
+                    <!-- Visualization controls will be added here -->
+                </div>
+                <div id="viewer-container" class="viewer">
+                    <!-- 3Dmol.js viewer will be initialized here -->
+                </div>
+                <div id="confidence-legend" class="legend" style="display: none;">
+                    <!-- Confidence score legend will be populated here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Data provided by <a href="https://alphafold.ebi.ac.uk/" target="_blank">AlphaFold Protein Structure Database</a></p>
+    </footer>
+
+    <!-- Loading indicator -->
+    <div id="loading-indicator" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Error message container -->
+    <div id="error-container" class="error" style="display: none;">
+        <div class="error-content">
+            <h3>Error</h3>
+            <p id="error-message"></p>
+            <button id="error-close">Close</button>
+        </div>
+    </div>
+
+    <!-- JavaScript files with cache busting -->
+    <script src="js/models/Protein.js?v=2"></script>
+    <script src="js/services/APIService.js?v=2"></script>
+    <script src="js/components/SearchComponent.js?v=2"></script>
+    <script src="js/components/InfoComponent.js?v=2"></script>
+    <script src="js/components/VisualizerComponent.js?v=2"></script>
+    <script src="js/app.js?v=2"></script>
+</body>
+</html>

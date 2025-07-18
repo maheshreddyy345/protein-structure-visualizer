@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structure Test - Protein Visualizer</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .pass { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .fail { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>Project Structure Test</h1>
+    <div id="test-results"></div>
+
+    <!-- Include 3Dmol.js -->
+    <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
+    
+    <script>
+        function addTestResult(message, passed) {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            resultDiv.textContent = (passed ? '✓ ' : '✗ ') + message;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function addInfoResult(message) {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'test-result info';
+            resultDiv.textContent = 'ℹ ' + message;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        // Test when page loads
+        window.addEventListener('load', function() {
+            addInfoResult('Running project structure tests...');
+
+            // Test 1: Check if 3Dmol.js is loaded
+            const has3Dmol = typeof $3Dmol !== 'undefined';
+            addTestResult('3Dmol.js library loaded from CDN', has3Dmol);
+            
+            if (has3Dmol) {
+                addInfoResult('3Dmol version: ' + ($3Dmol.version || 'Available'));
+                
+                // Test 2: Try to create a viewer
+                try {
+                    const testDiv = document.createElement('div');
+                    testDiv.style.width = '100px';
+                    testDiv.style.height = '100px';
+                    document.body.appendChild(testDiv);
+                    
+                    const viewer = $3Dmol.createViewer(testDiv);
+                    const canCreateViewer = viewer !== null && viewer !== undefined;
+                    addTestResult('Can create 3Dmol viewer instance', canCreateViewer);
+                    
+                    document.body.removeChild(testDiv);
+                } catch (error) {
+                    addTestResult('Can create 3Dmol viewer instance', false);
+                    addInfoResult('Error: ' + error.message);
+                }
+            }
+
+            // Test 3: Check if main HTML file exists (we can't directly test file existence from browser)
+            addInfoResult('Main HTML structure should include:');
+            addInfoResult('- Search section with form and results container');
+            addInfoResult('- Info section for protein details');
+            addInfoResult('- Visualization section with viewer container');
+            addInfoResult('- Loading and error indicators');
+
+            // Test 4: Check basic DOM structure elements that should exist in main page
+            const expectedElements = [
+                'search-section',
+                'info-section', 
+                'visualization-section',
+                'loading-indicator',
+                'error-container'
+            ];
+
+            // We can't test the main page from here, but we can note what should exist
+            addInfoResult('Expected DOM elements in main page: ' + expectedElements.join(', '));
+
+            addInfoResult('Project structure test completed. Open index.html to verify full structure.');
+        });
+    </script>
+</body>
+</html>
