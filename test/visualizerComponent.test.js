@@ -144,7 +144,7 @@ describe('VisualizerComponent', () => {
             
             expect(visualizerComponent.showLoadingState).toHaveBeenCalled();
             expect(visualizerComponent.initializeViewer).toHaveBeenCalled();
-            expect(mockApiService.fetchAlphaFoldStructure).toHaveBeenCalledWith(testUniprotId);
+            expect(mockApiService.fetchAlphaFoldStructure).toHaveBeenCalledWith(testUniprotId, expect.any(Function));
             expect(visualizerComponent.renderStructure).toHaveBeenCalledWith(mockPdbData);
             expect(visualizerComponent.currentProtein).toBe(testUniprotId);
             expect(visualizerComponent.visualizationSection.style.display).toBe('block');
@@ -156,22 +156,22 @@ describe('VisualizerComponent', () => {
             
             visualizerComponent.showLoadingState = jest.fn();
             visualizerComponent.initializeViewer = jest.fn().mockResolvedValue();
-            visualizerComponent.showError = jest.fn();
+            visualizerComponent.showDetailedError = jest.fn();
             
             await visualizerComponent.loadStructure(testUniprotId);
             
-            expect(visualizerComponent.showError).toHaveBeenCalledWith(errorMessage);
+            expect(visualizerComponent.showDetailedError).toHaveBeenCalledWith(expect.any(Error), testUniprotId);
         });
 
         test('should handle initialization errors', async () => {
             const errorMessage = '3Dmol.js library not loaded';
             visualizerComponent.showLoadingState = jest.fn();
             visualizerComponent.initializeViewer = jest.fn().mockRejectedValue(new Error(errorMessage));
-            visualizerComponent.showError = jest.fn();
+            visualizerComponent.showDetailedError = jest.fn();
             
             await visualizerComponent.loadStructure(testUniprotId);
             
-            expect(visualizerComponent.showError).toHaveBeenCalledWith(errorMessage);
+            expect(visualizerComponent.showDetailedError).toHaveBeenCalledWith(expect.any(Error), testUniprotId);
         });
     });
 
@@ -337,7 +337,7 @@ describe('VisualizerComponent', () => {
         test('should display loading indicator', () => {
             visualizerComponent.showLoadingState();
             
-            expect(visualizerComponent.viewerContainer.innerHTML).toContain('Loading 3D structure...');
+            expect(visualizerComponent.viewerContainer.innerHTML).toContain('Initializing 3D viewer...');
             expect(visualizerComponent.viewerContainer.innerHTML).toContain('spinner');
         });
     });
@@ -506,12 +506,12 @@ END`;
             
             visualizerComponent.showLoadingState = jest.fn();
             visualizerComponent.initializeViewer = jest.fn().mockResolvedValue();
-            visualizerComponent.showError = jest.fn();
+            visualizerComponent.showDetailedError = jest.fn();
             
             await visualizerComponent.loadStructure('INVALID');
             
-            expect(visualizerComponent.showError).toHaveBeenCalledWith(
-                expect.stringContaining('No AlphaFold structure available')
+            expect(visualizerComponent.showDetailedError).toHaveBeenCalledWith(
+                expect.any(Error), 'INVALID'
             );
         });
     });

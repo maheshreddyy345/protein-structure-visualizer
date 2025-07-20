@@ -10,6 +10,43 @@ class VisualizerComponent {
         this.legendContainer = document.getElementById('confidence-legend');
         this.viewer = null;
         this.currentProtein = null;
+        this.selectedResidue = null;
+        this.hoveredResidue = null;
+    }
+
+    /**
+     * Show loading state for structure loading
+     */
+    showLoadingState() {
+        this.viewerContainer.innerHTML = `
+            <div class="loading-structure" style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                color: #666;
+            ">
+                <div class="loading-message" style="margin-bottom: 1rem; font-size: 1.1rem;">
+                    Preparing 3D viewer...
+                </div>
+                <div class="progress-bar" style="
+                    width: 200px;
+                    height: 4px;
+                    background: #e2e8f0;
+                    border-radius: 2px;
+                    overflow: hidden;
+                    display: none;
+                ">
+                    <div class="progress-bar-fill" style="
+                        height: 100%;
+                        background: #0066ff;
+                        transition: width 0.3s ease;
+                        width: 0%;
+                    "></div>
+                </div>
+            </div>
+        `;
     }
 
     /**
@@ -26,8 +63,13 @@ class VisualizerComponent {
             // Initialize viewer first
             await this.initializeViewer();
             
+            // Create progress callback for structure loading
+            const progressCallback = (progress) => {
+                this.updateStructureProgress(progress);
+            };
+            
             // Fetch PDB structure data from AlphaFold
-            const pdbData = await this.apiService.fetchAlphaFoldStructure(uniprotId);
+            const pdbData = await this.apiService.fetchAlphaFoldStructure(uniprotId, progressCallback);
             
             // Render the structure
             this.renderStructure(pdbData);
@@ -42,7 +84,85 @@ class VisualizerComponent {
             
         } catch (error) {
             console.error('Error loading structure:', error);
-            this.showError(error.message || 'Failed to load protein structure');
+            this.showDetailedError(error, uniprotId);
+        }
+    }
+
+    /**
+     * Show detailed error message
+     * @param {Error} error - Error object
+     * @param {string} uniprotId - UniProt ID that failed
+     */
+    showDetailedError(error, uniprotId) {
+        this.viewerContainer.innerHTML = `
+            <div style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                color: #721c24;
+                background: #f8d7da;
+                border-radius: 8px;
+                padding: 2rem;
+                text-align: center;
+            ">
+                <h3 style="margin-bottom: 1rem; color: #721c24;">
+                    ⚠️ Unable to Load 3D Structure
+                </h3>
+                <p style="margin-bottom: 1rem;">
+                    Could not load the 3D structure for protein <strong>${uniprotId}</strong>
+                </p>
+                <p style="margin-bottom: 1.5rem; font-size: 0.9rem; color: #856404;">
+                    ${error.message || 'An unexpected error occurred'}
+                </p>
+                <div style="display: flex; gap: 1rem;">
+                    <button onclick="location.reload()" style="
+                        background: #007bff;
+                        color: white;
+                        border: none;
+                        padding: 0.5rem 1rem;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    ">Try Again</button>
+                    <button onclick="this.closest('.section').style.display='none'" style="
+                        background: #6c757d;
+                        color: white;
+                        border: none;
+                        padding: 0.5rem 1rem;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    ">Hide Section</button>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Update structure loading progress
+     * @param {Object} progress - Progress information
+     */
+    updateStructureProgress(progress) {
+        const loadingContainer = this.viewerContainer.querySelector('.loading-structure');
+        if (!loadingContainer) return;
+        
+        const messageElement = loadingContainer.querySelector('.loading-message');
+        const progressBar = loadingContainer.querySelector('.progress-bar-fill');
+        
+        if (messageElement) {
+            messageElement.textContent = progress.message || 'Loading structure...';
+        }
+        
+        // Update progress bar for download progress
+        if (progress.type === 'download_progress' && progressBar) {
+            progressBar.style.width = `${progress.progress}%`;
+        }
+        
+        // Show/hide progress bar based on progress type
+        const progressBarContainer = loadingContainer.querySelector('.progress-bar');
+        if (progressBarContainer) {
+            const showProgressBar = ['structure_download', 'download_progress'].includes(progress.type);
+            progressBarContainer.style.display = showProgressBar ? 'block' : 'none';
         }
     }
 
@@ -58,22 +178,58 @@ class VisualizerComponent {
         // Clear existing viewer
         this.viewerContainer.innerHTML = '';
         
-        // Create viewer element
+        // Create viewer element with explicit dimensions and containment
         const viewerElement = document.createElement('div');
         viewerElement.id = 'mol-viewer';
-        viewerElement.style.width = '100%';
-        viewerElement.style.height = '100%';
+        viewerElement.style.cssText = `
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        `;
         this.viewerContainer.appendChild(viewerElement);
         
-        // Initialize 3Dmol viewer
-        this.viewer = $3Dmol.createViewer(viewerElement, {
-            defaultcolors: $3Dmol.rasmolElementColors
-        });
+        // Small delay to ensure DOM is ready
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        console.log('3Dmol.js viewer initialized successfully');
-        
-        // Add basic controls
-        this.setupControls();
+        try {
+            // Initialize 3Dmol viewer with better configuration
+            this.viewer = $3Dmol.createViewer(viewerElement, {
+                defaultcolors: $3Dmol.rasmolElementColors,
+                backgroundColor: 'white'
+            });
+            
+            // Force the viewer to stay within its container
+            const canvas = viewerElement.querySelector('canvas');
+            if (canvas) {
+                canvas.style.position = 'relative';
+                canvas.style.maxWidth = '100%';
+                canvas.style.maxHeight = '100%';
+            }
+            
+            console.log('3Dmol.js viewer initialized successfully');
+            
+            // Trigger containment fix
+            if (window.fixViewerContainment) {
+                setTimeout(() => {
+                    window.fixViewerContainment();
+                }, 200);
+            }
+            
+            // Dispatch event for containment fix
+            document.dispatchEvent(new CustomEvent('viewerInitialized'));
+            
+            // Add basic controls
+            this.setupControls();
+            
+            return true;
+        } catch (error) {
+            console.error('Error creating 3Dmol viewer:', error);
+            throw new Error(`Failed to create 3D viewer: ${error.message}`);
+        }
     }
 
     /**
@@ -84,7 +240,7 @@ class VisualizerComponent {
             <h3>Visualization Controls</h3>
             <div class="control-group">
                 <label>Style:</label>
-                <select id="style-selector">
+                <select id="style-selector" data-edu-tooltip="protein-visualization">
                     <option value="cartoon">Cartoon</option>
                     <option value="surface">Surface</option>
                     <option value="stick">Stick</option>
@@ -97,7 +253,23 @@ class VisualizerComponent {
                 </label>
             </div>
             <div class="control-group">
+                <h4>Structural Elements</h4>
+                <label data-edu-tooltip="alpha-helix">
+                    <input type="checkbox" id="show-helices" checked>
+                    Show Alpha Helices
+                </label>
+                <label data-edu-tooltip="beta-sheet">
+                    <input type="checkbox" id="show-sheets" checked>
+                    Show Beta Sheets
+                </label>
+                <label data-edu-tooltip="loop-region">
+                    <input type="checkbox" id="show-loops" checked>
+                    Show Loops/Coils
+                </label>
+            </div>
+            <div class="control-group">
                 <button id="reset-view">Reset View</button>
+                <button id="clear-selection">Clear Selection</button>
             </div>
         `;
         
@@ -106,6 +278,36 @@ class VisualizerComponent {
         styleSelector.addEventListener('change', (e) => {
             this.updateVisualizationStyle(e.target.value);
         });
+
+        // Add event listeners for structural element controls
+        const helicesToggle = document.getElementById('show-helices');
+        const sheetsToggle = document.getElementById('show-sheets');
+        const loopsToggle = document.getElementById('show-loops');
+        const clearSelectionBtn = document.getElementById('clear-selection');
+
+        if (helicesToggle) {
+            helicesToggle.addEventListener('change', (e) => {
+                this.toggleStructuralElement('helix', e.target.checked);
+            });
+        }
+
+        if (sheetsToggle) {
+            sheetsToggle.addEventListener('change', (e) => {
+                this.toggleStructuralElement('sheet', e.target.checked);
+            });
+        }
+
+        if (loopsToggle) {
+            loopsToggle.addEventListener('change', (e) => {
+                this.toggleStructuralElement('loop', e.target.checked);
+            });
+        }
+
+        if (clearSelectionBtn) {
+            clearSelectionBtn.addEventListener('click', () => {
+                this.clearSelection();
+            });
+        }
     }
 
     /**
@@ -124,6 +326,11 @@ class VisualizerComponent {
         try {
             // Clear any existing models
             this.viewer.clear();
+            
+            // Validate PDB data
+            if (!pdbData.includes('HEADER') || !pdbData.includes('ATOM')) {
+                throw new Error('Invalid PDB file format - missing required sections');
+            }
             
             // Add the PDB data to the viewer
             this.viewer.addModel(pdbData, 'pdb');
@@ -150,7 +357,7 @@ class VisualizerComponent {
             this.showConfidenceLegend();
             
             console.log('Protein structure rendered successfully');
-            console.log(`Confidence data parsed: ${this.confidenceData.length} residues`);
+            console.log(`Confidence data parsed: ${this.confidenceData ? this.confidenceData.length : 0} residues`);
             
         } catch (error) {
             console.error('Error rendering structure:', error);
@@ -307,7 +514,413 @@ class VisualizerComponent {
             });
         }
         
+        // Setup interactive features
+        this.setupInteractiveFeatures();
+        
         console.log('Camera controls setup complete');
+    }
+
+    /**
+     * Setup interactive features for structure exploration
+     */
+    setupInteractiveFeatures() {
+        if (!this.viewer) return;
+        
+        // Setup hover functionality
+        this.viewer.setHoverable({}, true, (atom, viewer, event, container) => {
+            this.handleAtomHover(atom, event);
+        }, (viewer) => {
+            this.handleHoverEnd();
+        });
+        
+        // Setup click functionality
+        this.viewer.setClickable({}, true, (atom, viewer, event, container) => {
+            this.handleAtomClick(atom, event);
+        });
+        
+        console.log('Interactive features setup complete');
+    }
+
+    /**
+     * Handle atom hover events
+     * @param {Object} atom - 3Dmol atom object
+     * @param {Event} event - Mouse event
+     */
+    handleAtomHover(atom, event) {
+        if (!atom || !this.confidenceData) return;
+        
+        // Find residue data for the hovered atom
+        const residueData = this.confidenceData.find(data => 
+            data.residueNumber === atom.resi && 
+            data.chainId === atom.chain
+        );
+        
+        if (residueData && residueData !== this.hoveredResidue) {
+            this.hoveredResidue = residueData;
+            this.showResidueTooltip(residueData, event);
+        }
+    }
+
+    /**
+     * Handle end of hover events
+     */
+    handleHoverEnd() {
+        this.hoveredResidue = null;
+        this.hideResidueTooltip();
+    }
+
+    /**
+     * Handle atom click events
+     * @param {Object} atom - 3Dmol atom object
+     * @param {Event} event - Mouse event
+     */
+    handleAtomClick(atom, event) {
+        if (!atom || !this.confidenceData) return;
+        
+        // Find residue data for the clicked atom
+        const residueData = this.confidenceData.find(data => 
+            data.residueNumber === atom.resi && 
+            data.chainId === atom.chain
+        );
+        
+        if (residueData) {
+            // Clear previous selection
+            if (this.selectedResidue) {
+                this.clearResidueHighlight(this.selectedResidue);
+            }
+            
+            // Set new selection
+            this.selectedResidue = residueData;
+            this.highlightResidue(residueData);
+            this.showResidueDetails(residueData, event);
+            
+            console.log(`Selected residue: ${residueData.residueName}${residueData.residueNumber}`);
+        }
+    }
+
+    /**
+     * Show residue tooltip on hover
+     * @param {Object} residueData - Residue information
+     * @param {Event} event - Mouse event for positioning
+     */
+    showResidueTooltip(residueData, event) {
+        // Remove existing tooltip
+        this.hideResidueTooltip();
+        
+        // Create tooltip element
+        const tooltip = document.createElement('div');
+        tooltip.id = 'residue-tooltip';
+        tooltip.className = 'residue-tooltip';
+        tooltip.innerHTML = `
+            <div class="tooltip-content">
+                <strong>${residueData.residueName}${residueData.residueNumber}</strong>
+                <div class="tooltip-info">
+                    <span>Chain: ${residueData.chainId}</span>
+                    <span>Confidence: ${residueData.confidenceScore.toFixed(1)}%</span>
+                    <span class="confidence-level ${residueData.confidenceLevel}">
+                        ${this.getConfidenceLevelText(residueData.confidenceLevel)}
+                    </span>
+                </div>
+            </div>
+        `;
+        
+        // Position tooltip near mouse cursor
+        tooltip.style.position = 'absolute';
+        tooltip.style.left = (event.pageX + 10) + 'px';
+        tooltip.style.top = (event.pageY - 10) + 'px';
+        tooltip.style.zIndex = '1000';
+        
+        document.body.appendChild(tooltip);
+    }
+
+    /**
+     * Hide residue tooltip
+     */
+    hideResidueTooltip() {
+        const existingTooltip = document.getElementById('residue-tooltip');
+        if (existingTooltip) {
+            existingTooltip.remove();
+        }
+    }
+
+    /**
+     * Show detailed residue information popup
+     * @param {Object} residueData - Residue information
+     * @param {Event} event - Mouse event for positioning
+     */
+    showResidueDetails(residueData, event) {
+        // Remove existing popup
+        this.hideResidueDetails();
+        
+        // Create detailed popup
+        const popup = document.createElement('div');
+        popup.id = 'residue-details-popup';
+        popup.className = 'residue-details-popup';
+        
+        const aminoAcidInfo = this.getAminoAcidInfo(residueData.residueName);
+        
+        popup.innerHTML = `
+            <div class="popup-content">
+                <div class="popup-header">
+                    <h4>${aminoAcidInfo.fullName} (${residueData.residueName})</h4>
+                    <button class="popup-close" onclick="document.getElementById('residue-details-popup').remove()">×</button>
+                </div>
+                <div class="popup-body">
+                    <div class="residue-info-grid">
+                        <div class="info-item">
+                            <label>Position</label>
+                            <span>${residueData.residueNumber}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Chain</label>
+                            <span>${residueData.chainId}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Confidence Score</label>
+                            <span class="confidence-score">${residueData.confidenceScore.toFixed(1)}%</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Confidence Level</label>
+                            <span class="confidence-level ${residueData.confidenceLevel}">
+                                ${this.getConfidenceLevelText(residueData.confidenceLevel)}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="amino-acid-info">
+                        <h5>Amino Acid Properties</h5>
+                        <div class="properties-grid">
+                            <div class="property-item">
+                                <label>Type</label>
+                                <span>${aminoAcidInfo.type}</span>
+                            </div>
+                            <div class="property-item">
+                                <label>Polarity</label>
+                                <span>${aminoAcidInfo.polarity}</span>
+                            </div>
+                            <div class="property-item">
+                                <label>Charge</label>
+                                <span>${aminoAcidInfo.charge}</span>
+                            </div>
+                        </div>
+                        <p class="amino-acid-description">${aminoAcidInfo.description}</p>
+                    </div>
+                    <div class="confidence-explanation">
+                        <h5>Confidence Score Meaning</h5>
+                        <p>${this.getConfidenceExplanation(residueData.confidenceScore)}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Position popup
+        popup.style.position = 'fixed';
+        popup.style.left = '50%';
+        popup.style.top = '50%';
+        popup.style.transform = 'translate(-50%, -50%)';
+        popup.style.zIndex = '1001';
+        
+        document.body.appendChild(popup);
+        
+        // Add multiple ways to close the popup
+        const closeButton = popup.querySelector('.popup-close');
+        if (closeButton) {
+            closeButton.addEventListener('click', () => {
+                popup.remove();
+            });
+        }
+        
+        // Close on Escape key
+        const escapeHandler = (e) => {
+            if (e.key === 'Escape') {
+                popup.remove();
+                document.removeEventListener('keydown', escapeHandler);
+            }
+        };
+        document.addEventListener('keydown', escapeHandler);
+        
+        // Close on click outside
+        setTimeout(() => {
+            const outsideClickHandler = (event) => {
+                if (!popup.contains(event.target)) {
+                    popup.remove();
+                    document.removeEventListener('click', outsideClickHandler);
+                }
+            };
+            document.addEventListener('click', outsideClickHandler);
+        }, 100);
+    }
+
+    /**
+     * Hide residue details popup
+     */
+    hideResidueDetails() {
+        const existingPopup = document.getElementById('residue-details-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+    }
+
+    /**
+     * Handle clicks outside the popup to close it
+     * @param {Event} event - Click event
+     */
+    handlePopupOutsideClick(event) {
+        const popup = document.getElementById('residue-details-popup');
+        if (popup && !popup.contains(event.target)) {
+            popup.remove();
+        }
+    }
+
+    /**
+     * Highlight specific residue
+     * @param {Object} residueData - Residue data to highlight
+     */
+    highlightResidue(residueData) {
+        if (!this.viewer || !residueData) return;
+        
+        try {
+            // Create selection for the specific residue
+            const selection = {
+                resi: residueData.residueNumber,
+                chain: residueData.chainId
+            };
+            
+            // Add highlight style (sphere representation with bright color)
+            this.viewer.addStyle(selection, {
+                sphere: {
+                    color: '#FF0000',
+                    radius: 1.5,
+                    opacity: 0.8
+                }
+            });
+            
+            this.viewer.render();
+            console.log(`Highlighted residue: ${residueData.residueName}${residueData.residueNumber}`);
+            
+        } catch (error) {
+            console.error('Error highlighting residue:', error);
+        }
+    }
+
+    /**
+     * Clear residue highlight
+     * @param {Object} residueData - Residue data to clear highlight from
+     */
+    clearResidueHighlight(residueData) {
+        if (!this.viewer || !residueData) return;
+        
+        try {
+            // Remove sphere style from the specific residue
+            const selection = {
+                resi: residueData.residueNumber,
+                chain: residueData.chainId
+            };
+            
+            this.viewer.removeStyle(selection, { sphere: {} });
+            this.viewer.render();
+            
+            console.log(`Cleared highlight from residue: ${residueData.residueName}${residueData.residueNumber}`);
+            
+        } catch (error) {
+            console.error('Error clearing residue highlight:', error);
+        }
+    }
+
+    /**
+     * Toggle structural elements visibility
+     * @param {string} elementType - Type of structural element (helix, sheet, loop)
+     * @param {boolean} visible - Whether to show the element
+     */
+    toggleStructuralElement(elementType, visible) {
+        if (!this.viewer) return;
+        
+        try {
+            // Get current style
+            const styleSelector = document.getElementById('style-selector');
+            const currentStyle = styleSelector ? styleSelector.value : 'cartoon';
+            
+            // Define secondary structure selections
+            let selection = {};
+            switch (elementType) {
+                case 'helix':
+                    selection = { ss: 'h' }; // Alpha helix
+                    break;
+                case 'sheet':
+                    selection = { ss: 's' }; // Beta sheet
+                    break;
+                case 'loop':
+                    selection = { ss: 'c' }; // Coil/loop
+                    break;
+                default:
+                    console.warn(`Unknown structural element type: ${elementType}`);
+                    return;
+            }
+            
+            if (visible) {
+                // Show the structural element with current style
+                const confidenceToggle = document.getElementById('confidence-colors');
+                const useConfidenceColors = confidenceToggle ? confidenceToggle.checked : true;
+                
+                if (useConfidenceColors && this.confidenceData) {
+                    // Apply confidence-based coloring
+                    const colorFunction = (atom) => {
+                        const residueData = this.confidenceData.find(data => 
+                            data.residueNumber === atom.resi && 
+                            data.chainId === atom.chain
+                        );
+                        return residueData ? this.getConfidenceColor(residueData.confidenceScore) : '#CCCCCC';
+                    };
+                    
+                    const styleOptions = {};
+                    styleOptions[currentStyle] = { colorfunc: colorFunction };
+                    if (currentStyle === 'surface') {
+                        styleOptions[currentStyle].opacity = 0.8;
+                    }
+                    
+                    this.viewer.addStyle(selection, styleOptions);
+                } else {
+                    // Use default coloring
+                    const styleOptions = {};
+                    switch (currentStyle) {
+                        case 'cartoon':
+                            styleOptions.cartoon = { color: 'lightblue' };
+                            break;
+                        case 'surface':
+                            styleOptions.surface = { color: 'lightblue', opacity: 0.8 };
+                            break;
+                        case 'stick':
+                            styleOptions.stick = { color: 'lightblue' };
+                            break;
+                    }
+                    this.viewer.addStyle(selection, styleOptions);
+                }
+            } else {
+                // Hide the structural element
+                this.viewer.removeStyle(selection);
+            }
+            
+            this.viewer.render();
+            console.log(`${elementType} ${visible ? 'shown' : 'hidden'}`);
+            
+        } catch (error) {
+            console.error(`Error toggling ${elementType}:`, error);
+        }
+    }
+
+    /**
+     * Clear current selection
+     */
+    clearSelection() {
+        if (this.selectedResidue) {
+            this.clearResidueHighlight(this.selectedResidue);
+            this.selectedResidue = null;
+        }
+        
+        // Hide any open popups
+        this.hideResidueDetails();
+        this.hideResidueTooltip();
+        
+        console.log('Selection cleared');
     }
 
     /**
@@ -339,34 +952,33 @@ class VisualizerComponent {
             <div class="legend-content">
                 <div class="legend-item">
                     <div class="legend-color" style="background: #0053D6;"></div>
-                    <span>Very High (90-100): Very confident prediction</span>
+                    <span><strong>Very High (90-100%)</strong><br>Very confident prediction</span>
                     <span class="confidence-count">${stats.veryHigh} residues (${stats.veryHighPercent}%)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #65CBF3;"></div>
-                    <span>Confident (70-90): Generally accurate backbone</span>
+                    <span><strong>Confident (70-90%)</strong><br>Generally accurate backbone</span>
                     <span class="confidence-count">${stats.confident} residues (${stats.confidentPercent}%)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FFDB13;"></div>
-                    <span>Low (50-70): Backbone generally accurate</span>
+                    <span><strong>Low (50-70%)</strong><br>Backbone generally accurate</span>
                     <span class="confidence-count">${stats.low} residues (${stats.lowPercent}%)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FF7D45;"></div>
-                    <span>Very Low (0-50): Low confidence regions</span>
+                    <span><strong>Very Low (0-50%)</strong><br>Low confidence regions</span>
                     <span class="confidence-count">${stats.veryLow} residues (${stats.veryLowPercent}%)</span>
                 </div>
             </div>
             <div class="confidence-stats">
                 <p><strong>Overall Statistics:</strong></p>
-                <p>Average Confidence: ${stats.averageConfidence}%</p>
-                <p>Total Residues: ${stats.totalResidues}</p>
-                <p>High Confidence Regions: ${stats.highConfidencePercent}% (≥70)</p>
+                <p>Average Confidence: <strong>${stats.averageConfidence}%</strong></p>
+                <p>Total Residues: <strong>${stats.totalResidues}</strong></p>
+                <p>High Confidence Regions: <strong>${stats.highConfidencePercent}%</strong> (≥70)</p>
             </div>
             <p class="legend-note">
-                Colors represent AlphaFold's confidence in the predicted structure.
-                Higher confidence regions are more reliable for structural analysis.
+                Colors represent AlphaFold's confidence in the predicted structure. Higher confidence regions are more reliable for structural analysis.
             </p>
         `;
     }
@@ -504,22 +1116,85 @@ class VisualizerComponent {
     }
 
     /**
-     * Highlight specific residue
-     * @param {number} residueId - Residue ID to highlight
+     * Get confidence level text for display
+     * @param {string} level - Confidence level
+     * @returns {string} Human-readable confidence level
      */
-    highlightResidue(residueId) {
-        // Implementation will be added in later tasks
-        console.log(`Highlighting residue: ${residueId}`);
+    getConfidenceLevelText(level) {
+        const levelTexts = {
+            'very_high': 'Very High',
+            'confident': 'Confident',
+            'low': 'Low',
+            'very_low': 'Very Low'
+        };
+        return levelTexts[level] || 'Unknown';
     }
 
     /**
-     * Show loading state
+     * Get amino acid information
+     * @param {string} residueName - Three-letter amino acid code
+     * @returns {Object} Amino acid properties
+     */
+    getAminoAcidInfo(residueName) {
+        const aminoAcids = {
+            'ALA': { fullName: 'Alanine', type: 'Nonpolar', polarity: 'Hydrophobic', charge: 'Neutral', description: 'Small, nonpolar amino acid that provides flexibility to protein structures.' },
+            'ARG': { fullName: 'Arginine', type: 'Basic', polarity: 'Hydrophilic', charge: 'Positive', description: 'Positively charged amino acid important for protein-protein interactions.' },
+            'ASN': { fullName: 'Asparagine', type: 'Polar', polarity: 'Hydrophilic', charge: 'Neutral', description: 'Polar amino acid that can form hydrogen bonds and is often found on protein surfaces.' },
+            'ASP': { fullName: 'Aspartic Acid', type: 'Acidic', polarity: 'Hydrophilic', charge: 'Negative', description: 'Negatively charged amino acid important for enzyme active sites and metal binding.' },
+            'CYS': { fullName: 'Cysteine', type: 'Polar', polarity: 'Hydrophilic', charge: 'Neutral', description: 'Contains sulfur and can form disulfide bonds that stabilize protein structure.' },
+            'GLN': { fullName: 'Glutamine', type: 'Polar', polarity: 'Hydrophilic', charge: 'Neutral', description: 'Polar amino acid that can form hydrogen bonds and is common in protein loops.' },
+            'GLU': { fullName: 'Glutamic Acid', type: 'Acidic', polarity: 'Hydrophilic', charge: 'Negative', description: 'Negatively charged amino acid important for enzyme catalysis and protein stability.' },
+            'GLY': { fullName: 'Glycine', type: 'Nonpolar', polarity: 'Neutral', charge: 'Neutral', description: 'Smallest amino acid that provides maximum flexibility to protein backbone.' },
+            'HIS': { fullName: 'Histidine', type: 'Basic', polarity: 'Hydrophilic', charge: 'Positive', description: 'Can be positively charged and is often found in enzyme active sites.' },
+            'ILE': { fullName: 'Isoleucine', type: 'Nonpolar', polarity: 'Hydrophobic', charge: 'Neutral', description: 'Branched, hydrophobic amino acid important for protein core stability.' },
+            'LEU': { fullName: 'Leucine', type: 'Nonpolar', polarity: 'Hydrophobic', charge: 'Neutral', description: 'Hydrophobic amino acid commonly found in protein cores and alpha helices.' },
+            'LYS': { fullName: 'Lysine', type: 'Basic', polarity: 'Hydrophilic', charge: 'Positive', description: 'Positively charged amino acid important for DNA binding and protein interactions.' },
+            'MET': { fullName: 'Methionine', type: 'Nonpolar', polarity: 'Hydrophobic', charge: 'Neutral', description: 'Contains sulfur and is often the first amino acid in protein synthesis.' },
+            'PHE': { fullName: 'Phenylalanine', type: 'Nonpolar', polarity: 'Hydrophobic', charge: 'Neutral', description: 'Aromatic amino acid important for protein stability and protein-protein interactions.' },
+            'PRO': { fullName: 'Proline', type: 'Nonpolar', polarity: 'Neutral', charge: 'Neutral', description: 'Unique cyclic structure that introduces kinks and turns in protein chains.' },
+            'SER': { fullName: 'Serine', type: 'Polar', polarity: 'Hydrophilic', charge: 'Neutral', description: 'Polar amino acid that can be phosphorylated and is important for enzyme regulation.' },
+            'THR': { fullName: 'Threonine', type: 'Polar', polarity: 'Hydrophilic', charge: 'Neutral', description: 'Polar amino acid that can be phosphorylated and forms hydrogen bonds.' },
+            'TRP': { fullName: 'Tryptophan', type: 'Nonpolar', polarity: 'Hydrophobic', charge: 'Neutral', description: 'Largest amino acid with aromatic ring, important for protein stability.' },
+            'TYR': { fullName: 'Tyrosine', type: 'Polar', polarity: 'Hydrophilic', charge: 'Neutral', description: 'Aromatic amino acid that can be phosphorylated and is important for signaling.' },
+            'VAL': { fullName: 'Valine', type: 'Nonpolar', polarity: 'Hydrophobic', charge: 'Neutral', description: 'Branched, hydrophobic amino acid important for protein core structure.' }
+        };
+
+        return aminoAcids[residueName] || {
+            fullName: 'Unknown', type: 'Unknown', polarity: 'Unknown', charge: 'Unknown', description: 'Unknown amino acid type.'
+        };
+    }
+
+    /**
+     * Get confidence explanation based on score
+     * @param {number} score - Confidence score
+     * @returns {string} Explanation of the confidence score
+     */
+    getConfidenceExplanation(score) {
+        if (score >= 90) {
+            return 'Very high confidence: The predicted structure is very reliable and can be used with confidence for most applications.';
+        } else if (score >= 70) {
+            return 'Confident: The backbone prediction is generally accurate, though some side chain positions may be uncertain.';
+        } else if (score >= 50) {
+            return 'Low confidence: The backbone is generally accurate, but the overall structure should be treated with caution.';
+        } else {
+            return 'Very low confidence: This region has high uncertainty and should not be used for detailed structural analysis.';
+        }
+    }
+
+    /**
+     * Show loading state with progress tracking
      */
     showLoadingState() {
         this.viewerContainer.innerHTML = `
-            <div class="viewer-loading">
+            <div class="loading-structure">
                 <div class="spinner"></div>
-                <p>Loading 3D structure...</p>
+                <p class="loading-message">Initializing 3D viewer...</p>
+                <div class="progress-bar" style="display: none;">
+                    <div class="progress-bar-fill" style="width: 0%;"></div>
+                </div>
+                <div class="loading-details">
+                    <small>This may take a moment for large protein structures</small>
+                </div>
             </div>
         `;
     }
@@ -540,11 +1215,309 @@ class VisualizerComponent {
     }
 
     /**
+     * Show detailed error with user guidance for structure loading
+     * @param {Error} error - Error object
+     * @param {string} uniprotId - UniProt ID that failed
+     */
+    showDetailedError(error, uniprotId) {
+        let errorMessage = error.message || 'Failed to load protein structure';
+        let userAction = 'Please try again or select a different protein.';
+        let suggestions = [];
+        let isStructureUnavailable = false;
+
+        // Provide specific guidance based on error type
+        if (error.message && error.message.includes('No AlphaFold structure available')) {
+            isStructureUnavailable = true;
+            userAction = 'This protein structure is not available in the AlphaFold database.';
+            suggestions = [
+                'Try a different protein that may have a predicted structure',
+                'Check the AlphaFold database directly for availability',
+                'Some proteins may not be included due to size or complexity limitations'
+            ];
+        } else if (error.message && error.message.includes('Invalid PDB file format')) {
+            userAction = 'The downloaded structure file appears to be corrupted.';
+            suggestions = [
+                'Try downloading the structure again',
+                'Check your internet connection stability',
+                'Contact support if the problem persists'
+            ];
+        } else if (error.message && error.message.includes('network') || error.message.includes('connection')) {
+            userAction = 'Please check your internet connection and try again.';
+            suggestions = [
+                'Check your internet connection',
+                'Try refreshing the page',
+                'Large structure files may take longer to download'
+            ];
+        } else if (error.message && error.message.includes('timeout') || error.message.includes('timed out')) {
+            userAction = 'The structure download timed out. This may be due to a large file size.';
+            suggestions = [
+                'Try again - large structures can take time to download',
+                'Check your internet connection speed',
+                'Wait a moment and retry'
+            ];
+        } else if (error.message && error.message.includes('3Dmol')) {
+            userAction = 'There was a problem with the 3D visualization library.';
+            suggestions = [
+                'Try refreshing the page',
+                'Check if your browser supports WebGL',
+                'Update your browser to the latest version'
+            ];
+        }
+
+        this.viewerContainer.innerHTML = `
+            <div class="viewer-error-detailed">
+                <div class="error-header">
+                    <div class="error-icon">${isStructureUnavailable ? '📊' : '⚠️'}</div>
+                    <h3>${isStructureUnavailable ? 'Structure Not Available' : 'Structure Loading Error'}</h3>
+                </div>
+                <div class="error-content">
+                    <p class="error-message"><strong>Error:</strong> ${errorMessage}</p>
+                    <p class="error-action"><strong>What to do:</strong> ${userAction}</p>
+                    ${suggestions.length > 0 ? `
+                        <div class="error-suggestions">
+                            <h4>Suggestions:</h4>
+                            <ul>
+                                ${suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    <div class="error-protein-info">
+                        <p><strong>Protein ID:</strong> ${uniprotId}</p>
+                        ${isStructureUnavailable ? `
+                            <p><strong>Note:</strong> AlphaFold provides predicted structures for millions of proteins, 
+                            but not all proteins are included. Coverage focuses on model organisms and proteins of 
+                            scientific interest.</p>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="error-actions">
+                    ${!isStructureUnavailable ? `
+                        <button class="retry-btn" onclick="window.proteinApp.visualizerComponent.loadStructure('${uniprotId}')">
+                            Try Again
+                        </button>
+                    ` : ''}
+                    <button class="close-btn" onclick="this.closest('.viewer-error-detailed').parentElement.parentElement.style.display='none'">
+                        Close
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Get confidence level text for display
+     * @param {string} level - Confidence level
+     * @returns {string} Human-readable text
+     */
+    getConfidenceLevelText(level) {
+        const levelTexts = {
+            'very_high': 'Very High Confidence',
+            'confident': 'Confident',
+            'low': 'Low Confidence',
+            'very_low': 'Very Low Confidence'
+        };
+        return levelTexts[level] || 'Unknown';
+    }
+
+    /**
+     * Get confidence explanation for a score
+     * @param {number} score - Confidence score
+     * @returns {string} Explanation text
+     */
+    getConfidenceExplanation(score) {
+        if (score >= 90) {
+            return 'This region is predicted with very high accuracy. The backbone and side chain positions are highly reliable and can be trusted for detailed structural analysis.';
+        } else if (score >= 70) {
+            return 'This region has a confident prediction. The backbone is likely correct, but some side chain positions may be less accurate. Good for understanding overall protein architecture.';
+        } else if (score >= 50) {
+            return 'This region has low confidence. The general fold is likely correct, but specific atomic positions should be interpreted with caution.';
+        } else {
+            return 'This region has very low confidence and may be disordered or the prediction may be unreliable. Use with extreme caution.';
+        }
+    }
+
+    /**
+     * Get amino acid information
+     * @param {string} residueName - Three-letter amino acid code
+     * @returns {Object} Amino acid information
+     */
+    getAminoAcidInfo(residueName) {
+        const aminoAcids = {
+            'ALA': {
+                fullName: 'Alanine',
+                type: 'Nonpolar',
+                polarity: 'Hydrophobic',
+                charge: 'Neutral',
+                description: 'Small, simple amino acid often found in protein cores and flexible regions.'
+            },
+            'ARG': {
+                fullName: 'Arginine',
+                type: 'Basic',
+                polarity: 'Hydrophilic',
+                charge: 'Positive',
+                description: 'Large, positively charged amino acid often involved in protein-protein interactions.'
+            },
+            'ASN': {
+                fullName: 'Asparagine',
+                type: 'Polar',
+                polarity: 'Hydrophilic',
+                charge: 'Neutral',
+                description: 'Polar amino acid that can form hydrogen bonds, often found on protein surfaces.'
+            },
+            'ASP': {
+                fullName: 'Aspartic Acid',
+                type: 'Acidic',
+                polarity: 'Hydrophilic',
+                charge: 'Negative',
+                description: 'Negatively charged amino acid often involved in enzyme active sites and metal binding.'
+            },
+            'CYS': {
+                fullName: 'Cysteine',
+                type: 'Polar',
+                polarity: 'Hydrophilic',
+                charge: 'Neutral',
+                description: 'Contains sulfur and can form disulfide bonds, important for protein stability.'
+            },
+            'GLN': {
+                fullName: 'Glutamine',
+                type: 'Polar',
+                polarity: 'Hydrophilic',
+                charge: 'Neutral',
+                description: 'Polar amino acid that can form hydrogen bonds, often found in protein loops.'
+            },
+            'GLU': {
+                fullName: 'Glutamic Acid',
+                type: 'Acidic',
+                polarity: 'Hydrophilic',
+                charge: 'Negative',
+                description: 'Negatively charged amino acid often involved in enzyme catalysis and protein interactions.'
+            },
+            'GLY': {
+                fullName: 'Glycine',
+                type: 'Nonpolar',
+                polarity: 'Neutral',
+                charge: 'Neutral',
+                description: 'Smallest amino acid, provides flexibility and is often found in protein turns.'
+            },
+            'HIS': {
+                fullName: 'Histidine',
+                type: 'Basic',
+                polarity: 'Hydrophilic',
+                charge: 'Positive',
+                description: 'Can be positively charged, often found in enzyme active sites and metal binding.'
+            },
+            'ILE': {
+                fullName: 'Isoleucine',
+                type: 'Nonpolar',
+                polarity: 'Hydrophobic',
+                charge: 'Neutral',
+                description: 'Branched hydrophobic amino acid often found in protein cores.'
+            },
+            'LEU': {
+                fullName: 'Leucine',
+                type: 'Nonpolar',
+                polarity: 'Hydrophobic',
+                charge: 'Neutral',
+                description: 'Hydrophobic amino acid commonly found in protein cores and alpha helices.'
+            },
+            'LYS': {
+                fullName: 'Lysine',
+                type: 'Basic',
+                polarity: 'Hydrophilic',
+                charge: 'Positive',
+                description: 'Positively charged amino acid often found on protein surfaces and in binding sites.'
+            },
+            'MET': {
+                fullName: 'Methionine',
+                type: 'Nonpolar',
+                polarity: 'Hydrophobic',
+                charge: 'Neutral',
+                description: 'Contains sulfur and is often the first amino acid in proteins (start codon).'
+            },
+            'PHE': {
+                fullName: 'Phenylalanine',
+                type: 'Nonpolar',
+                polarity: 'Hydrophobic',
+                charge: 'Neutral',
+                description: 'Large aromatic amino acid often found in protein cores and binding sites.'
+            },
+            'PRO': {
+                fullName: 'Proline',
+                type: 'Nonpolar',
+                polarity: 'Neutral',
+                charge: 'Neutral',
+                description: 'Unique cyclic structure that introduces kinks in protein chains and breaks helices.'
+            },
+            'SER': {
+                fullName: 'Serine',
+                type: 'Polar',
+                polarity: 'Hydrophilic',
+                charge: 'Neutral',
+                description: 'Small polar amino acid that can be phosphorylated and is often found in active sites.'
+            },
+            'THR': {
+                fullName: 'Threonine',
+                type: 'Polar',
+                polarity: 'Hydrophilic',
+                charge: 'Neutral',
+                description: 'Polar amino acid that can be phosphorylated and forms hydrogen bonds.'
+            },
+            'TRP': {
+                fullName: 'Tryptophan',
+                type: 'Nonpolar',
+                polarity: 'Hydrophobic',
+                charge: 'Neutral',
+                description: 'Largest amino acid with an aromatic ring, often found in protein-membrane interfaces.'
+            },
+            'TYR': {
+                fullName: 'Tyrosine',
+                type: 'Polar',
+                polarity: 'Hydrophilic',
+                charge: 'Neutral',
+                description: 'Aromatic amino acid that can be phosphorylated and is involved in signaling.'
+            },
+            'VAL': {
+                fullName: 'Valine',
+                type: 'Nonpolar',
+                polarity: 'Hydrophobic',
+                charge: 'Neutral',
+                description: 'Branched hydrophobic amino acid often found in protein cores and beta sheets.'
+            }
+        };
+
+        return aminoAcids[residueName] || {
+            fullName: 'Unknown',
+            type: 'Unknown',
+            polarity: 'Unknown',
+            charge: 'Unknown',
+            description: 'Unknown amino acid residue.'
+        };
+    }
+
+    /**
      * Hide visualization section
      */
     hide() {
-        this.visualizationSection.style.display = 'none';
+        if (this.visualizationSection) {
+            this.visualizationSection.style.display = 'none';
+        }
+        
+        // Clear current protein
+        this.currentProtein = null;
+        
+        // Clear selection
+        this.selectedResidue = null;
+        this.hoveredResidue = null;
+        
+        // Hide tooltips and popups
+        this.hideResidueTooltip();
+        this.hideResidueDetails();
     }
+}
+
+// Export for Node.js testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = VisualizerComponent;
 }
 
 // Export for Node.js testing

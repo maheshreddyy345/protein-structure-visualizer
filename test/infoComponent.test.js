@@ -52,7 +52,7 @@ describe('InfoComponent', () => {
             
             await infoComponent.fetchProteinInfo('P69905');
             
-            expect(mockApiService.getProteinMetadata).toHaveBeenCalledWith('P69905');
+            expect(mockApiService.getProteinMetadata).toHaveBeenCalledWith('P69905', expect.any(Function));
         });
 
         test('should handle API errors gracefully', async () => {

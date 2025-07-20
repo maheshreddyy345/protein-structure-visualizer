@@ -1,258 +1,211 @@
-/* Reset and base styles */
+/* 
+ * PROTEIN STRUCTURE VISUALIZER - COMPLETE REDESIGN
+ * Vibrant, high-contrast color scheme with perfect visibility
+ */
+
+/* Reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background-color: #f5f5f5;
+/* Modern Color System */
+:root {
+    /* Brand Colors - Vibrant Science Theme */
+    --electric-blue: #0066ff;
+    --cyber-purple: #8b5cf6;
+    --neon-green: #00ff88;
+    --bright-orange: #ff6b35;
+    --hot-pink: #ff1493;
+    
+    /* Neutral Colors - High Contrast */
+    --pure-white: #ffffff;
+    --light-gray: #f8fafc;
+    --medium-gray: #64748b;
+    --dark-gray: #334155;
+    --charcoal: #1e293b;
+    --deep-black: #0f172a;
+    
+    /* Status Colors */
+    --success-green: #10b981;
+    --warning-yellow: #f59e0b;
+    --danger-red: #ef4444;
+    
+    /* Light Theme - High Contrast for Better Readability */
+    --bg-main: var(--pure-white);
+    --bg-card: var(--pure-white);
+    --bg-accent: #f8fafc;
+    --text-primary: #000000;
+    --text-secondary: #1a1a1a;
+    --text-muted: #2d3748;
+    --border-color: #cbd5e0;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.15);
 }
 
-/* Header styles */
+/* Dark Theme */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-main: var(--deep-black);
+        --bg-card: var(--charcoal);
+        --bg-accent: var(--dark-gray);
+        --text-primary: var(--pure-white);
+        --text-secondary: #e2e8f0;
+        --text-muted: #94a3b8;
+        --border-color: var(--dark-gray);
+        --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+    }
+}
+
+/* Base Styles */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: var(--bg-main);
+    font-size: 16px;
+    font-weight: 400;
+}
+
+/* Header - Vibrant Gradient */
 header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--electric-blue), var(--cyber-purple), var(--neon-green));
     color: white;
     text-align: center;
-    padding: 2rem 1rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 4rem 2rem;
+    box-shadow: var(--shadow);
+    position: relative;
 }
 
 header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    letter-spacing: -0.02em;
 }
 
 header p {
-    font-size: 1.1rem;
-    opacity: 0.9;
+    font-size: 1.3rem;
+    font-weight: 500;
+    opacity: 0.95;
 }
 
-/* Main content */
+/* Main Layout */
 main {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem 1rem;
+    padding: 3rem 2rem;
 }
 
-/* Section styles */
+/* Section Cards */
 .section {
-    background: white;
-    margin-bottom: 2rem;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    background: var(--bg-card);
+    margin-bottom: 3rem;
+    padding: 3rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.section:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
 }
 
 .section h2 {
-    color: #667eea;
-    margin-bottom: 1.5rem;
-    font-size: 1.8rem;
+    color: var(--electric-blue);
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
 }
 
-/* Search section */
+/* Search Section */
 .search-container {
-    max-width: 600px;
+    max-width: 800px;
 }
 
 .input-group {
     display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    gap: 1rem;
+    margin-bottom: 2rem;
 }
 
 #search-input {
     flex: 1;
-    padding: 0.75rem;
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
+    padding: 1.25rem 1.5rem;
+    border: 3px solid var(--border-color);
+    border-radius: 15px;
+    font-size: 1.2rem;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-weight: 500;
+    transition: all 0.3s ease;
 }
 
 #search-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--electric-blue);
+    box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.1);
+}
+
+#search-input::placeholder {
+    color: var(--text-muted);
 }
 
 #search-button {
-    padding: 0.75rem 1.5rem;
-    background: #667eea;
+    padding: 1.25rem 2.5rem;
+    background: linear-gradient(135deg, var(--electric-blue), var(--cyber-purple));
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 15px;
     cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s;
+    font-size: 1.2rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
 }
 
 #search-button:hover {
-    background: #5a6fd8;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.2);
 }
 
+/* Search Results */
 .results-container {
-    margin-top: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-/* Info section */
-.info-container {
-    display: grid;
-    gap: 1rem;
-}
-
-/* Visualization section */
-.visualization-container {
-    display: grid;
-    grid-template-columns: 1fr 3fr;
-    gap: 1rem;
-    min-height: 500px;
-}
-
-.controls {
-    background: #f8f9fa;
-    padding: 1rem;
-    border-radius: 4px;
-}
-
-.viewer {
-    background: #fff;
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    position: relative;
-    min-height: 500px;
-}
-
-.legend {
-    grid-column: 1 / -1;
-    background: #f8f9fa;
-    padding: 1rem;
-    border-radius: 4px;
-    margin-top: 1rem;
-}
-
-/* Loading indicator */
-.loading {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.loading p {
-    color: white;
-    margin-top: 1rem;
-    font-size: 1.1rem;
-}
-
-/* Error styles */
-.error {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1001;
-}
-
-.error-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    max-width: 500px;
-    text-align: center;
-}
-
-.error-content h3 {
-    color: #e74c3c;
-    margin-bottom: 1rem;
-}
-
-#error-close {
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-/* Footer */
-footer {
-    text-align: center;
-    padding: 2rem;
-    background: #333;
-    color: white;
     margin-top: 2rem;
+    border: 2px solid var(--border-color);
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--bg-card);
+    box-shadow: var(--shadow);
 }
 
-footer a {
-    color: #667eea;
-    text-decoration: none;
-}
-
-footer a:hover {
-    text-decoration: underline;
-}
-
-/* Search results styles */
 .results-header {
-    padding: 1rem;
-    background: #f8f9fa;
-    border-bottom: 1px solid #ddd;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--electric-blue), var(--cyber-purple));
+    color: white;
 }
 
 .results-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
     margin: 0;
-    color: #667eea;
-    font-size: 1.1rem;
-}
-
-.results-list {
-    max-height: 250px;
-    overflow-y: auto;
 }
 
 .result-item {
-    padding: 1rem;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    padding: 2rem;
+    border-bottom: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    background: var(--bg-card);
 }
 
 .result-item:hover {
-    background-color: #f8f9fa;
+    background: var(--bg-accent);
+    transform: translateX(8px);
+    box-shadow: inset 6px 0 0 var(--electric-blue);
 }
 
 .result-item:last-child {
@@ -262,88 +215,603 @@ footer a:hover {
 .result-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 0.5rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 2rem;
 }
 
 .protein-name {
     margin: 0;
-    font-size: 1rem;
-    color: #333;
-    flex: 1;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    font-weight: 700;
+    line-height: 1.3;
 }
 
 .uniprot-id {
-    background: #667eea;
+    background: linear-gradient(135deg, var(--hot-pink), var(--bright-orange));
     color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 3px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    margin-left: 1rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: var(--shadow);
 }
 
 .result-details {
-    margin-bottom: 1rem;
-    font-size: 0.9rem;
-    color: #666;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+    line-height: 1.6;
 }
 
 .result-details p {
-    margin: 0.25rem 0;
+    margin: 0.75rem 0;
+    color: #1a1a1a !important;
+    font-weight: 500;
+}
+
+.result-details strong {
+    color: #000000 !important;
+    font-weight: 700;
+}
+
+.organism {
+    color: #1a1a1a !important;
+    font-weight: 500;
+}
+
+.sequence-length {
+    color: #1a1a1a !important;
+    font-weight: 500;
 }
 
 .select-protein-btn {
-    background: #28a745;
+    background: linear-gradient(135deg, var(--neon-green), var(--success-green));
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
+    padding: 1rem 2rem;
+    border-radius: 12px;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.3s;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
 }
 
 .select-protein-btn:hover {
-    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px -2px rgba(16, 185, 129, 0.3);
 }
 
-/* Additional component styles */
-.no-results {
-    padding: 1rem;
-    text-align: center;
-    color: #666;
+/* Protein Information */
+.protein-details {
+    max-width: 1000px;
 }
 
-.no-results ul {
-    text-align: left;
-    display: inline-block;
-    margin-top: 0.5rem;
+.protein-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 3px solid var(--border-color);
+    gap: 2rem;
 }
 
-.spinner-small {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #f3f3f3;
-    border-top: 2px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    display: inline-block;
-    margin-right: 0.5rem;
+.protein-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1.2;
 }
 
-.loading-info, .error-info {
-    text-align: center;
+.uniprot-id-badge {
+    background: linear-gradient(135deg, var(--cyber-purple), var(--hot-pink));
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: var(--shadow);
+}
+
+.protein-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.info-item {
+    background: var(--bg-accent);
     padding: 2rem;
+    border-radius: 15px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
 }
 
-.viewer-loading, .viewer-error {
+.info-item:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+    border-color: var(--electric-blue);
+}
+
+.info-item label {
+    font-weight: 800;
+    color: var(--electric-blue);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.info-item span {
+    font-size: 1.3rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    line-height: 1.4;
+    display: block;
+}
+
+.confidence-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.confidence-score {
+    font-weight: 700;
+    font-size: 1.3rem;
+}
+
+.protein-description {
+    margin-bottom: 3rem;
+    padding: 2.5rem;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.05), rgba(139, 92, 246, 0.05));
+    border-radius: 20px;
+    border: 2px solid var(--border-color);
+    position: relative;
+}
+
+.protein-description::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: linear-gradient(180deg, var(--electric-blue), var(--cyber-purple));
+    border-radius: 3px;
+}
+
+.protein-description label {
+    font-weight: 800;
+    color: #1a365d !important;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 1.5rem;
+}
+
+.protein-description p {
+    margin: 0;
+    line-height: 1.8;
+    color: #000000 !important;
+    font-size: 1.2rem;
+    font-weight: 400;
+    background: rgba(255, 255, 255, 0.9) !important;
+    padding: 1rem !important;
+    border-radius: 8px !important;
+}
+
+/* 3D Visualization */
+.visualization-container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 3rem;
+    min-height: 700px;
+    position: relative;
+    overflow: hidden;
+}
+
+.controls {
+    background: #f8fafc !important;
+    padding: 2rem;
+    border-radius: 20px;
+    border: 2px solid #cbd5e0;
+    height: fit-content;
+    box-shadow: var(--shadow);
+}
+
+.controls h3 {
+    color: #1a365d !important;
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.control-group {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.control-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.control-group label {
+    display: block;
+    color: #000000 !important;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.control-group select {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #cbd5e0;
+    border-radius: 10px;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.control-group input[type="checkbox"] {
+    margin-right: 0.75rem;
+    transform: scale(1.3);
+}
+
+.control-group button {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--electric-blue), var(--cyber-purple));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-bottom: 0.75rem;
+    box-shadow: var(--shadow);
+}
+
+.control-group button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px -2px rgba(0, 102, 255, 0.3);
+}
+
+.viewer {
+    background: var(--bg-card);
+    border: 3px solid var(--border-color);
+    border-radius: 20px;
+    min-height: 600px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.legend {
+    grid-column: 1 / -1;
+    background: var(--bg-accent);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 2px solid var(--border-color);
+    margin-top: 2rem;
+    box-shadow: var(--shadow);
+}
+
+/* Footer */
+footer {
+    background: var(--charcoal);
+    color: var(--text-muted);
+    text-align: center;
+    padding: 3rem 2rem;
+    margin-top: 5rem;
+}
+
+footer a {
+    color: var(--electric-blue);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+footer a:hover {
+    color: var(--cyber-purple);
+}
+
+/* Loading States */
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100%;
+    z-index: 1000;
+    color: white;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-top: 5px solid var(--electric-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 2rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.error-content {
+    background: var(--bg-card);
+    padding: 3rem;
+    border-radius: 20px;
+    max-width: 600px;
+    margin: 2rem;
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+    border: 2px solid var(--border-color);
+}
+
+.error-content h3 {
+    color: var(--danger-red);
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.error-content p {
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+    line-height: 1.7;
+    font-size: 1.1rem;
+}
+
+.error-content button {
+    background: var(--electric-blue);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.error-content button:hover {
+    background: var(--cyber-purple);
+    transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .visualization-container {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .controls {
+        order: 2;
+    }
+    
+    .viewer {
+        order: 1;
+        min-height: 500px;
+    }
+}
+
+@media (max-width: 768px) {
+    header {
+        padding: 3rem 1rem;
+    }
+    
+    header h1 {
+        font-size: 2.5rem;
+    }
+    
+    main {
+        padding: 2rem 1rem;
+    }
+    
+    .section {
+        padding: 2rem;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .result-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .protein-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+    
+    .protein-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    .section {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .result-item {
+        padding: 1.5rem;
+    }
+}
+
+/* No Results */
+.no-results {
+    padding: 3rem;
     text-align: center;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+}
+
+/* Ensure all text is visible */
+* {
+    color: inherit;
+}
+
+/* Force high contrast for critical elements */
+.protein-name,
+.result-details strong,
+.info-item span,
+.protein-description p {
+    color: var(--text-primary) !important;
+}
+
+.result-details p,
+.organism,
+.sequence-length {
+    color: #1a1a1a !important;
+    font-weight: 500;
+}
+
+/* Educational Components */
+.glossary-button,
+.help-button {
+    background: linear-gradient(135deg, var(--neon-green), var(--success-green));
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+}
+
+.glossary-button:hover,
+.help-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px -2px rgba(16, 185, 129, 0.3);
+}
+
+/* 3D Viewer Specific Styles */
+.viewer {
+    width: 100%;
+    height: 500px;
+    min-height: 400px;
+    border: 2px solid var(--border-color);
+    border-radius: 15px;
+    background: var(--bg-card);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+#mol-viewer {
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+#viewer-container {
+    width: 100%;
+    height: 500px;
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* Force 3Dmol.js canvas to stay within bounds */
+#viewer-container canvas {
+    position: relative !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
+
+/* Ensure 3Dmol.js elements stay contained */
+#viewer-container * {
+    position: relative !important;
+}
+
+/* Loading states */
+.loading-structure {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-secondary);
+}
+
+.loading-message {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.progress-bar {
+    width: 200px;
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--electric-blue);
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+/* Visualization controls */
+.controls {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: var(--bg-accent);
+    border-radius: 10px;
 }
 
 .control-group {
@@ -353,281 +821,367 @@ footer a:hover {
 .control-group label {
     display: block;
     margin-bottom: 0.5rem;
-    font-weight: 500;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
-.control-group select, .control-group button {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+.control-group select,
+.control-group input[type="checkbox"] {
+    margin-right: 0.5rem;
 }
 
 .control-group button {
-    background: #667eea;
+    margin-right: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--electric-blue);
     color: white;
+    border: none;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    font-size: 0.9rem;
 }
 
 .control-group button:hover {
-    background: #5a6fd8;
+    background: #0052cc;
+}
+
+/* Confidence legend */
+.legend {
+    margin-top: 1rem;
+    padding: 2rem !important;
+    background: #ffffff !important;
+    border: 2px solid #cbd5e0 !important;
+    border-radius: 15px !important;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+.legend h3,
+.legend h4 {
+    margin-bottom: 1.5rem !important;
+    color: #1a365d !important;
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+}
+
+.confidence-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.confidence-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    margin-right: 0.5rem;
+}
+
+/* Tooltips and popups */
+.residue-tooltip {
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    max-width: 200px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.residue-details-popup {
+    position: fixed;
+    background: white !important;
+    border: 2px solid #cbd5e0 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+    max-width: 450px !important;
+    z-index: 1001 !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+.popup-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 1.5rem !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+    background: #f8fafc !important;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.popup-close {
+    background: #ef4444 !important;
+    color: white !important;
+    border: none !important;
+    font-size: 1.2rem !important;
+    cursor: pointer !important;
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: bold !important;
+}
+
+.popup-body {
+    padding: 1.5rem !important;
+    background: white !important;
+    color: #000000 !important;
+}
+
+.residue-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-item label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
 }
 
 .confidence-score {
     font-weight: bold;
 }
 
-/* Protein info display styles */
-.protein-details {
-    max-width: 800px;
+.confidence-level {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
 }
 
-.protein-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #f0f0f0;
-}
-
-.protein-header h3 {
-    margin: 0;
-    color: #333;
-    font-size: 1.5rem;
-    flex: 1;
-}
-
-.uniprot-id-badge {
-    background: #667eea;
+.confidence-level.very_high {
+    background: #0053D6;
     color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-left: 1rem;
 }
 
-.protein-info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+.confidence-level.confident {
+    background: #65CBF3;
+    color: white;
 }
 
-.info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+.confidence-level.low {
+    background: #FFDB13;
+    color: black;
 }
 
-.info-item label {
-    font-weight: 600;
-    color: #555;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.confidence-level.very_low {
+    background: #FF7D45;
+    color: white;
+}
+/*
+ Additional 3D Viewer Containment Rules */
+.viewer, #viewer-container {
+    contain: layout style paint;
+    isolation: isolate;
 }
 
-.info-item span {
-    font-size: 1rem;
-    color: #333;
+/* Prevent 3Dmol.js from creating elements outside container */
+#viewer-container > * {
+    max-width: 100% !important;
+    max-height: 100% !important;
 }
 
-.confidence-container {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+/* Force any absolutely positioned elements to stay relative to container */
+#viewer-container .mol-container,
+#viewer-container .mol-viewer {
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
 }
 
-.tooltip-trigger {
-    cursor: help;
-    color: #667eea;
-    display: inline-flex;
-    align-items: center;
-    transition: color 0.3s;
+/* Ensure WebGL canvas stays within bounds */
+#viewer-container canvas[data-engine="webgl"] {
+    position: relative !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
+/
+* CRITICAL FIX: Force all text to be visible and readable */
+/* This override ensures text is never white/invisible */
+
+body, body *,
+.result-item, .result-item *,
+.result-details, .result-details *,
+.protein-name, .organism, .sequence-length,
+p, span, div, strong, em, h1, h2, h3, h4, h5, h6 {
+    color: #000000 !important;
 }
 
-.tooltip-trigger:hover {
-    color: #5a6fd8;
+/* Specific fixes for search results */
+.result-details p,
+.result-details strong,
+.organism,
+.sequence-length {
+    color: #000000 !important;
+    font-weight: 500 !important;
 }
 
-.tooltip {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    max-width: 300px;
-    z-index: 1000;
+/* Ensure protein names are always visible */
+.protein-name {
+    color: #000000 !important;
+    font-weight: 700 !important;
 }
 
-.tooltip-content {
-    padding: 1rem;
+/* Fix any hover effects that might be causing issues */
+.result-item:hover,
+.result-item:hover *,
+.result-details:hover,
+.result-details:hover * {
+    color: #000000 !important;
 }
 
-.tooltip-content h4 {
-    margin: 0 0 0.5rem 0;
-    color: #333;
-    font-size: 1rem;
+/* Override any white text */
+*[style*="color: white"],
+*[style*="color: #ffffff"],
+*[style*="color: #fff"] {
+    color: #000000 !important;
 }
 
-.tooltip-content p {
-    margin: 0.5rem 0;
-    font-size: 0.9rem;
-    line-height: 1.4;
+/* Ensure buttons keep their proper colors */
+.select-protein-btn,
+.uniprot-id,
+button {
+    color: white !important;
 }
 
-.tooltip-content ul {
-    margin: 0.5rem 0;
-    padding-left: 1.2rem;
+/* Section headings should be dark blue, not black */
+.section h2,
+h1, h2 {
+    color: #1a365d !important;
+}/* 
+Enhanced popup styling for better visibility and usability */
+.residue-details-popup * {
+    color: #000000 !important;
 }
 
-.tooltip-content li {
-    margin: 0.25rem 0;
-    font-size: 0.85rem;
-    line-height: 1.3;
+.popup-header h4 {
+    color: #1a365d !important;
+    margin: 0 !important;
+    font-size: 1.3rem !important;
+    font-weight: 700 !important;
 }
 
-.protein-description {
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 6px;
-    border-left: 4px solid #667eea;
+.popup-close:hover {
+    background: #dc2626 !important;
+    transform: scale(1.1) !important;
 }
 
-.protein-description label {
-    font-weight: 600;
-    color: #555;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: block;
-    margin-bottom: 0.5rem;
+.residue-info-grid .info-item label {
+    color: #4a5568 !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
 }
 
-.protein-description p {
-    margin: 0;
-    line-height: 1.5;
-    color: #333;
+.residue-info-grid .info-item span {
+    color: #000000 !important;
+    font-weight: 500 !important;
 }
 
-.protein-meta {
-    text-align: right;
-    padding-top: 1rem;
-    border-top: 1px solid #eee;
+.amino-acid-info h5,
+.confidence-explanation h5 {
+    color: #1a365d !important;
+    font-size: 1.1rem !important;
+    margin-bottom: 0.5rem !important;
 }
 
-.protein-meta small {
-    color: #666;
-    font-style: italic;
+.amino-acid-description,
+.confidence-explanation p {
+    color: #2d3748 !important;
+    line-height: 1.5 !important;
 }
 
-/* Legend styles */
+/* Add backdrop for better focus */
+.residue-details-popup::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+}/* Enhan
+ced confidence legend styling */
+.legend * {
+    color: #000000 !important;
+}
+
 .legend-content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
-
-.legend-item span:first-of-type {
-    flex: 1;
-    min-width: 200px;
-}
-
-.confidence-count {
-    font-size: 0.85rem;
-    color: #666;
-    font-weight: 500;
-    background: #f8f9fa;
-    padding: 0.2rem 0.5rem;
-    border-radius: 12px;
-    margin-left: auto;
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 1rem !important;
+    padding: 0.75rem !important;
+    background: #f8fafc !important;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
 }
 
 .legend-color {
-    width: 20px;
-    height: 20px;
-    border-radius: 3px;
-    border: 1px solid #ddd;
-    flex-shrink: 0;
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 6px !important;
+    margin-right: 1rem !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    flex-shrink: 0 !important;
+}
+
+.legend-item span {
+    color: #000000 !important;
+    font-weight: 500 !important;
+    margin-right: 1rem !important;
+}
+
+.confidence-count {
+    color: #4a5568 !important;
+    font-size: 0.9rem !important;
+    margin-left: auto !important;
+    font-weight: 600 !important;
 }
 
 .confidence-stats {
-    background: #f8f9fa;
-    padding: 1rem;
-    border-radius: 6px;
-    margin: 1rem 0;
-    border-left: 4px solid #667eea;
+    background: #f0f9ff !important;
+    padding: 1rem !important;
+    border-radius: 8px !important;
+    border: 1px solid #bae6fd !important;
+    margin-bottom: 1rem !important;
 }
 
 .confidence-stats p {
-    margin: 0.25rem 0;
-    font-size: 0.9rem;
+    color: #000000 !important;
+    margin: 0.25rem 0 !important;
+    font-size: 0.95rem !important;
 }
 
-.confidence-stats p:first-child {
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 0.5rem;
+.confidence-stats strong {
+    color: #1a365d !important;
 }
 
 .legend-note {
-    font-size: 0.9rem;
-    color: #666;
-    font-style: italic;
-    margin: 0;
-    padding-top: 0.5rem;
-    border-top: 1px solid #eee;
-}
-
-/* 3D Viewer specific styles */
-#mol-viewer {
-    width: 100% !important;
-    height: 100% !important;
-    min-height: 500px;
-}
-
-.viewer canvas {
-    border-radius: 4px;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-    .visualization-container {
-        grid-template-columns: 1fr;
-    }
-    
-    .input-group {
-        flex-direction: column;
-    }
-    
-    header h1 {
-        font-size: 2rem;
-    }
-    
-    main {
-        padding: 1rem;
-    }
-    
-    .section {
-        padding: 1rem;
-    }
-    
-    .legend-content {
-        gap: 0.75rem;
-    }
-    
-    .legend-item {
-        font-size: 0.9rem;
-    }
+    color: #4a5568 !important;
+    font-size: 0.9rem !important;
+    font-style: italic !important;
+    text-align: center !important;
+    margin: 0 !important;
+    padding-top: 1rem !important;
+    border-top: 1px solid #e2e8f0 !important;
 }

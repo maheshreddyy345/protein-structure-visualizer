@@ -43,7 +43,7 @@ class SearchComponent {
             await this.searchProtein(query);
         } catch (error) {
             console.error('Search error:', error);
-            this.showError(error.message || 'Search failed. Please try again.');
+            this.showDetailedError(error);
         } finally {
             this.setLoadingState(false);
         }
@@ -88,11 +88,48 @@ class SearchComponent {
         console.log(`Searching for protein: ${query}`);
         
         try {
-            const results = await this.apiService.searchUniProt(query);
+            // Create safe progress callback that won't throw errors
+            const progressCallback = (progress) => {
+                try {
+                    this.updateSearchProgress(progress);
+                } catch (progressError) {
+                    console.warn('Progress callback error:', progressError);
+                }
+            };
+
+            const results = await this.apiService.searchUniProt(query, progressCallback);
             this.displaySearchResults(results);
         } catch (error) {
             console.error('UniProt search failed:', error);
             throw error; // Re-throw to be handled by handleSearch
+        }
+    }
+
+    /**
+     * Update search progress display
+     * @param {Object} progress - Progress information
+     */
+    updateSearchProgress(progress) {
+        const button = this.searchButton;
+        
+        switch (progress.type) {
+            case 'search_start':
+                button.textContent = 'Searching...';
+                break;
+            case 'retry':
+                button.textContent = `Retrying... (${progress.attempt}/${progress.maxAttempts})`;
+                break;
+            case 'retry_delay':
+                button.textContent = `Retrying in ${Math.round(progress.delay / 1000)}s...`;
+                break;
+            case 'search_processing':
+                button.textContent = 'Processing...';
+                break;
+            case 'search_complete':
+                button.textContent = 'Search';
+                break;
+            default:
+                button.textContent = 'Searching...';
         }
     }
 
@@ -221,4 +258,53 @@ class SearchComponent {
         errorMessage.textContent = message;
         errorContainer.style.display = 'flex';
     }
+
+    /**
+     * Show detailed error with user guidance
+     * @param {Error} error - Error object
+     */
+    showDetailedError(error) {
+        // Try to extract structured error information
+        let errorMessage = error.message || 'Search failed. Please try again.';
+        let userAction = 'Please try again.';
+        
+        // Check if this is a structured error from APIService
+        if (error.message && error.message.includes('Unable to search UniProt database')) {
+            userAction = 'Please check your internet connection and try again.';
+        } else if (error.message && error.message.includes('not found in UniProt database')) {
+            userAction = 'Please check the spelling or try a different search term.';
+        } else if (error.message && error.message.includes('timed out')) {
+            userAction = 'The server may be busy. Please wait a moment and try again.';
+        }
+
+        // Show error in results area with helpful guidance
+        this.resultsContainer.style.display = 'block';
+        this.resultsContainer.innerHTML = `
+            <div class="search-error">
+                <div class="error-icon">⚠️</div>
+                <div class="error-content">
+                    <h3>Search Error</h3>
+                    <p class="error-message">${errorMessage}</p>
+                    <p class="error-action">${userAction}</p>
+                    <div class="error-suggestions">
+                        <h4>Search Tips:</h4>
+                        <ul>
+                            <li>Try searching with a protein name (e.g., "hemoglobin", "insulin")</li>
+                            <li>Use a UniProt ID (e.g., "P69905", "P01308")</li>
+                            <li>Check your spelling and try different terms</li>
+                            <li>Make sure you have an internet connection</li>
+                        </ul>
+                    </div>
+                    <button class="retry-search-btn" onclick="this.closest('.search-error').style.display='none'">
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Export for Node.js testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = SearchComponent;
 }

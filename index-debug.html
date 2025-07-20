@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protein Structure Visualizer (Debug Mode)</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- 3Dmol.js library from CDN -->
+    <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
+    <style>
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 10000;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-info">
+        <strong>DEBUG MODE ENABLED</strong><br>
+        All errors will be shown in popups.<br>
+        Check console for detailed logs.
+    </div>
+
+    <header>
+        <h1>Protein Structure Visualizer</h1>
+        <p>Explore protein structures from the AlphaFold database</p>
+    </header>
+
+    <main>
+        <!-- Search Section -->
+        <section id="search-section" class="section">
+            <h2>Search Proteins</h2>
+            <div class="search-container">
+                <form id="search-form">
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="search-input" 
+                            placeholder="Enter protein name or UniProt ID (e.g., hemoglobin or P69905)"
+                            required
+                        >
+                        <button type="submit" id="search-button">Search</button>
+                    </div>
+                </form>
+                <div id="search-results" class="results-container" style="display: none;">
+                    <!-- Search results will be populated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Protein Information Section -->
+        <section id="info-section" class="section" style="display: none;">
+            <h2>Protein Information</h2>
+            <div id="protein-info" class="info-container">
+                <!-- Protein details will be populated here -->
+            </div>
+        </section>
+
+        <!-- 3D Visualization Section -->
+        <section id="visualization-section" class="section" style="display: none;">
+            <h2>3D Structure Visualization</h2>
+            <div class="visualization-container">
+                <div id="visualization-controls" class="controls">
+                    <!-- Visualization controls will be added here -->
+                </div>
+                <div id="viewer-container" class="viewer">
+                    <!-- 3Dmol.js viewer will be initialized here -->
+                </div>
+                <div id="confidence-legend" class="legend" style="display: none;">
+                    <!-- Confidence score legend will be populated here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Data provided by <a href="https://alphafold.ebi.ac.uk/" target="_blank">AlphaFold Protein Structure Database</a></p>
+    </footer>
+
+    <!-- Loading indicator -->
+    <div id="loading-indicator" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Error message container -->
+    <div id="error-container" class="error" style="display: none;">
+        <div class="error-content">
+            <h3>Error</h3>
+            <p id="error-message"></p>
+            <button id="error-close">Close</button>
+        </div>
+    </div>
+
+    <!-- JavaScript files -->
+    <script src="js/models/Protein.js"></script>
+    <script src="js/services/APIService.js"></script>
+    <script src="js/components/SearchComponent.js"></script>
+    <script src="js/components/InfoComponent.js"></script>
+    <script src="js/components/VisualizerComponent.js"></script>
+    <script src="js/components/EducationalComponent.js"></script>
+    <script src="js/app.js"></script>
+    
+    <script>
+        // Force debug mode
+        if (window.proteinApp) {
+            window.proteinApp.debugMode = true;
+        }
+        
+        // Add debug mode to URL if not present
+        if (!window.location.search.includes('debug=true')) {
+            const url = new URL(window.location);
+            url.searchParams.set('debug', 'true');
+            window.history.replaceState({}, '', url);
+        }
+    </script>
+</body>
+</html>

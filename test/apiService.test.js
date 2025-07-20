@@ -10,6 +10,9 @@ global.AbortController = jest.fn(() => ({
 }));
 global.setTimeout = jest.fn((fn) => fn());
 global.clearTimeout = jest.fn();
+global.TextDecoder = jest.fn().mockImplementation(() => ({
+    decode: jest.fn((data) => 'HELLO WORLD')
+}));
 
 describe('APIService Tests', () => {
     let apiService;
@@ -106,6 +109,80 @@ describe('APIService Tests', () => {
             
             expect(fetch).toHaveBeenCalledTimes(3);
         });
+
+        test('should use exponential backoff for retries', async () => {
+            const networkError = new Error('Network error');
+            networkError.name = 'TypeError';
+            
+            const delaySpy = jest.spyOn(apiService, 'delay').mockResolvedValue();
+            
+            fetch
+                .mockRejectedValueOnce(networkError)
+                .mockRejectedValueOnce(networkError)
+                .mockResolvedValueOnce({ ok: true, status: 200 });
+
+            await apiService.makeRequestWithRetry('https://example.com');
+            
+            // Should have called delay twice (for 2nd and 3rd attempts)
+            expect(delaySpy).toHaveBeenCalledTimes(2);
+            
+            // First retry should have base delay + jitter
+            const firstDelayCall = delaySpy.mock.calls[0][0];
+            expect(firstDelayCall).toBeGreaterThanOrEqual(1000); // Base delay
+            expect(firstDelayCall).toBeLessThan(3000); // Base delay + max jitter
+            
+            // Second retry should have exponential backoff
+            const secondDelayCall = delaySpy.mock.calls[1][0];
+            expect(secondDelayCall).toBeGreaterThanOrEqual(2000); // 2x base delay
+            expect(secondDelayCall).toBeLessThan(4000); // 2x base delay + max jitter
+            
+            delaySpy.mockRestore();
+        });
+
+        test('should call progress callback during retries', async () => {
+            const networkError = new Error('Network error');
+            networkError.name = 'TypeError';
+            
+            const progressCallback = jest.fn();
+            const delaySpy = jest.spyOn(apiService, 'delay').mockResolvedValue();
+            
+            fetch
+                .mockRejectedValueOnce(networkError)
+                .mockResolvedValueOnce({ ok: true, status: 200 });
+
+            await apiService.makeRequestWithRetry('https://example.com', {}, 1, progressCallback);
+            
+            // Should call progress callback for retry attempt and retry delay
+            expect(progressCallback).toHaveBeenCalledWith({
+                type: 'retry',
+                attempt: 2,
+                maxAttempts: 3,
+                message: 'Retrying request (attempt 2/3)...'
+            });
+            
+            expect(progressCallback).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: 'retry_delay',
+                    delay: expect.any(Number),
+                    message: expect.stringContaining('Retrying in')
+                })
+            );
+            
+            delaySpy.mockRestore();
+        });
+
+        test('should add retry information to final error', async () => {
+            const networkError = new Error('Network error');
+            networkError.name = 'TypeError';
+            fetch.mockRejectedValue(networkError);
+
+            try {
+                await apiService.makeRequestWithRetry('https://example.com');
+            } catch (error) {
+                expect(error.retryAttempts).toBe(3);
+                expect(error.maxRetryAttempts).toBe(3);
+            }
+        });
     });
 
     describe('shouldRetry', () => {
@@ -135,28 +212,34 @@ describe('APIService Tests', () => {
     });
 
     describe('handleApiErrors', () => {
-        test('should handle network errors', () => {
+        test('should handle network errors with retry information', () => {
             const networkError = new Error('Network error');
             networkError.name = 'TypeError';
+            networkError.retryAttempts = 3;
             
             const result = apiService.handleApiErrors(networkError);
             
             expect(result.type).toBe('network');
             expect(result.retryable).toBe(true);
-            expect(result.message).toContain('Network connection error');
+            expect(result.message).toContain('Network connection error (Failed after 3 attempts)');
+            expect(result.userAction).toBe('Check your internet connection and try again');
+            expect(result.technicalDetails).toBe('Network error');
         });
 
-        test('should handle timeout errors', () => {
+        test('should handle timeout errors with detailed information', () => {
             const timeoutError = new Error('Timeout');
             timeoutError.name = 'AbortError';
+            timeoutError.retryAttempts = 2;
             
             const result = apiService.handleApiErrors(timeoutError);
             
             expect(result.type).toBe('timeout');
             expect(result.retryable).toBe(true);
+            expect(result.message).toContain('Request timed out (Failed after 2 attempts)');
+            expect(result.userAction).toBe('Wait a moment and try again');
         });
 
-        test('should handle 404 errors', () => {
+        test('should handle 404 errors with specific guidance', () => {
             const notFoundError = new Error('Not Found');
             notFoundError.status = 404;
             
@@ -164,20 +247,33 @@ describe('APIService Tests', () => {
             
             expect(result.type).toBe('not_found');
             expect(result.retryable).toBe(false);
-            expect(result.message).toContain('not found in the database');
+            expect(result.message).toContain('Resource not found');
+            expect(result.userAction).toBe('Verify the protein ID and try a different protein');
+            expect(result.technicalDetails).toBe('HTTP 404: Not Found');
         });
 
-        test('should handle server errors', () => {
-            const serverError = new Error('Internal Server Error');
-            serverError.status = 500;
-            
-            const result = apiService.handleApiErrors(serverError);
-            
-            expect(result.type).toBe('server');
-            expect(result.retryable).toBe(true);
+        test('should handle different server error codes', () => {
+            const serverErrors = [
+                { status: 500, expectedMessage: 'Internal server error' },
+                { status: 502, expectedMessage: 'Bad gateway' },
+                { status: 503, expectedMessage: 'Service unavailable' },
+                { status: 504, expectedMessage: 'Gateway timeout' }
+            ];
+
+            serverErrors.forEach(({ status, expectedMessage }) => {
+                const serverError = new Error('Server Error');
+                serverError.status = status;
+                
+                const result = apiService.handleApiErrors(serverError);
+                
+                expect(result.type).toBe('server');
+                expect(result.retryable).toBe(true);
+                expect(result.message).toContain(expectedMessage);
+                expect(result.technicalDetails).toContain(`HTTP ${status}`);
+            });
         });
 
-        test('should handle rate limiting', () => {
+        test('should handle rate limiting with specific guidance', () => {
             const rateLimitError = new Error('Too Many Requests');
             rateLimitError.status = 429;
             
@@ -185,15 +281,54 @@ describe('APIService Tests', () => {
             
             expect(result.type).toBe('rate_limit');
             expect(result.retryable).toBe(true);
+            expect(result.message).toContain('Too many requests');
+            expect(result.userAction).toBe('Wait 30-60 seconds before trying again');
         });
 
-        test('should handle unknown errors', () => {
-            const unknownError = new Error('Unknown error');
+        test('should handle client errors as non-retryable', () => {
+            const clientErrors = [400, 401, 403];
+            
+            clientErrors.forEach(status => {
+                const clientError = new Error('Client Error');
+                clientError.status = status;
+                
+                const result = apiService.handleApiErrors(clientError);
+                
+                expect(result.retryable).toBe(false);
+                expect(result.technicalDetails).toContain(`HTTP ${status}`);
+            });
+        });
+
+        test('should handle fetch-specific errors', () => {
+            const fetchError = new Error('Failed to fetch');
+            
+            const result = apiService.handleApiErrors(fetchError);
+            
+            expect(result.type).toBe('network');
+            expect(result.message).toContain('Unable to connect to the server');
+            expect(result.userAction).toBe('Check your internet connection');
+        });
+
+        test('should handle unknown errors with fallback', () => {
+            const unknownError = new Error('Mysterious error');
             
             const result = apiService.handleApiErrors(unknownError);
             
             expect(result.type).toBe('unknown');
             expect(result.retryable).toBe(true);
+            expect(result.message).toContain('An unexpected error occurred');
+            expect(result.userAction).toBe('Try again or contact support');
+            expect(result.technicalDetails).toBe('Mysterious error');
+        });
+
+        test('should handle errors without retry information', () => {
+            const simpleError = new Error('Simple error');
+            simpleError.status = 500;
+            
+            const result = apiService.handleApiErrors(simpleError);
+            
+            expect(result.message).not.toContain('Failed after');
+            expect(result.message).toContain('Internal server error');
         });
     });
 
@@ -332,7 +467,43 @@ describe('APIService Tests', () => {
             fetch.mockRejectedValueOnce(apiError);
 
             await expect(apiService.searchUniProt('test'))
-                .rejects.toThrow('Network connection error. Please check your internet connection and try again.');
+                .rejects.toThrow('Unable to search UniProt database. Please check your internet connection and try again.');
+        });
+
+        test('should call progress callback during search', async () => {
+            const mockResponse = {
+                ok: true,
+                status: 200,
+                json: () => Promise.resolve({ results: [] })
+            };
+            fetch.mockResolvedValueOnce(mockResponse);
+
+            const progressCallback = jest.fn();
+            await apiService.searchUniProt('test protein', progressCallback);
+
+            expect(progressCallback).toHaveBeenCalledWith({
+                type: 'search_start',
+                message: 'Searching for proteins matching "test protein"...'
+            });
+
+            expect(progressCallback).toHaveBeenCalledWith({
+                type: 'search_processing',
+                message: 'Processing search results...'
+            });
+
+            expect(progressCallback).toHaveBeenCalledWith({
+                type: 'search_complete',
+                message: 'Found 0 results'
+            });
+        });
+
+        test('should provide context-specific error messages', async () => {
+            const notFoundError = new Error('Not Found');
+            notFoundError.status = 404;
+            fetch.mockRejectedValueOnce(notFoundError);
+
+            await expect(apiService.searchUniProt('P99999'))
+                .rejects.toThrow('Protein P99999 not found in UniProt database');
         });
 
         test('should format protein results with missing fields', async () => {
@@ -528,7 +699,7 @@ describe('APIService Tests', () => {
             fetch.mockRejectedValueOnce(apiError);
 
             await expect(apiService.getProteinMetadata('P69905'))
-                .rejects.toThrow('Network connection error. Please check your internet connection and try again.');
+                .rejects.toThrow('Unable to fetch protein information for P69905');
         });
 
         test('should normalize UniProt ID to uppercase', async () => {
@@ -722,4 +893,204 @@ describe('APIService Tests', () => {
             expect(new Date(formatted.lastUpdated)).toBeInstanceOf(Date);
         });
     });
-});
+
+    describe('fetchAlphaFoldStructure', () => {
+        const validPdbData = `HEADER    OXYGEN TRANSPORT                        22-MAY-96   1HHO              
+ATOM      1  N   VAL A   1      -8.901   4.127  -0.555  1.00 11.99           N  
+ATOM      2  CA  VAL A   1      -8.608   3.135  -1.618  1.00 11.85           C  
+END`;
+
+        test('should fetch structure with progress tracking', async () => {
+            const mockResponse = {
+                ok: true,
+                status: 200,
+                headers: {
+                    get: jest.fn(() => '1024') // Content-Length
+                },
+                text: () => Promise.resolve(validPdbData)
+            };
+            fetch.mockResolvedValueOnce(mockResponse);
+
+            const progressCallback = jest.fn();
+            const result = await apiService.fetchAlphaFoldStructure('P69905', progressCallback);
+
+            expect(result).toBe(validPdbData);
+            expect(progressCallback).toHaveBeenCalledWith({
+                type: 'structure_start',
+                message: 'Downloading 3D structure for P69905...'
+            });
+
+            expect(progressCallback).toHaveBeenCalledWith({
+                type: 'structure_download',
+                message: 'Downloading structure file (1 KB)...',
+                totalSize: 1024
+            });
+
+            expect(progressCallback).toHaveBeenCalledWith({
+                type: 'structure_complete',
+                message: 'Structure file downloaded successfully'
+            });
+        });
+
+        test('should handle structure not found with detailed error', async () => {
+            const notFoundError = new Error('Not Found');
+            notFoundError.status = 404;
+            fetch.mockRejectedValueOnce(notFoundError);
+
+            await expect(apiService.fetchAlphaFoldStructure('P99999'))
+                .rejects.toThrow('No AlphaFold structure available for protein P99999. This protein may not be included in the AlphaFold database yet');
+        });
+
+        test('should handle invalid PDB format', async () => {
+            const mockResponse = {
+                ok: true,
+                status: 200,
+                headers: { get: jest.fn(() => null) },
+                text: () => Promise.resolve('Invalid PDB content')
+            };
+            fetch.mockResolvedValueOnce(mockResponse);
+
+            await expect(apiService.fetchAlphaFoldStructure('P69905'))
+                .rejects.toThrow('Invalid PDB file format received');
+        });
+
+        test('should validate UniProt ID format with detailed message', async () => {
+            await expect(apiService.fetchAlphaFoldStructure('invalid-id'))
+                .rejects.toThrow('Invalid UniProt ID format. UniProt IDs should be 6-10 characters long');
+        });
+
+        test('should handle access forbidden error', async () => {
+            const forbiddenError = new Error('Forbidden');
+            forbiddenError.status = 403;
+            fetch.mockRejectedValueOnce(forbiddenError);
+
+            await expect(apiService.fetchAlphaFoldStructure('P69905'))
+                .rejects.toThrow('Access to AlphaFold structure for P69905 is restricted');
+        });
+
+        test('should handle timeout with context-specific message', async () => {
+            const timeoutError = new Error('Timeout');
+            timeoutError.name = 'AbortError';
+            fetch.mockRejectedValueOnce(timeoutError);
+
+            await expect(apiService.fetchAlphaFoldStructure('P69905'))
+                .rejects.toThrow('Unable to download structure for P69905');
+        });
+    });
+
+    describe('readResponseWithProgress', () => {
+        test('should read response with progress tracking', async () => {
+            const chunks = [
+                new Uint8Array([72, 69, 76, 76, 79]), // "HELLO"
+                new Uint8Array([32, 87, 79, 82, 76, 68]) // " WORLD"
+            ];
+
+            const mockReader = {
+                read: jest.fn()
+                    .mockResolvedValueOnce({ done: false, value: chunks[0] })
+                    .mockResolvedValueOnce({ done: false, value: chunks[1] })
+                    .mockResolvedValueOnce({ done: true }),
+                releaseLock: jest.fn()
+            };
+
+            const mockResponse = {
+                body: {
+                    getReader: () => mockReader
+                }
+            };
+
+            const progressCallback = jest.fn();
+            const result = await apiService.readResponseWithProgress(mockResponse, 11, progressCallback);
+
+            expect(result).toBe('HELLO WORLD');
+            expect(progressCallback).toHaveBeenCalledWith({
+                type: 'download_progress',
+                progress: 45, // 5/11 * 100
+                receivedLength: 5,
+                totalSize: 11,
+                message: 'Downloading... 45% (5/11 KB)'
+            });
+
+            expect(progressCallback).toHaveBeenCalledWith({
+                type: 'download_progress',
+                progress: 100, // 11/11 * 100
+                receivedLength: 11,
+                totalSize: 11,
+                message: 'Downloading... 100% (11/11 KB)'
+            });
+
+            expect(mockReader.releaseLock).toHaveBeenCalled();
+        });
+
+        test('should handle reader errors gracefully', async () => {
+            const mockReader = {
+                read: jest.fn().mockRejectedValueOnce(new Error('Read error')),
+                releaseLock: jest.fn()
+            };
+
+            const mockResponse = {
+                body: {
+                    getReader: () => mockReader
+                }
+            };
+
+            const progressCallback = jest.fn();
+
+            await expect(apiService.readResponseWithProgress(mockResponse, 100, progressCallback))
+                .rejects.toThrow('Read error');
+
+            expect(mockReader.releaseLock).toHaveBeenCalled();
+        });
+    });
+
+    describe('getProteinMetadata', () => {
+        test('should call progress callback during metadata fetch', async () => {
+            const mockMetadata = {
+                primaryAccession: 'P69905',
+                proteinDescription: {
+                    recommendedName: { fullName: { value: 'Test Protein' } }
+                },
+                organism: { scientificName: 'Test Organism' },
+                sequence: { length: 100 }
+            };
+
+            const mockResponse = {
+                ok: true,
+                status: 200,
+                json: () => Promise.resolve(mockMetadata)
+            };
+            fetch.mockResolvedValueOnce(mockResponse);
+
+            const progressCallback = jest.fn();
+            await apiService.getProteinMetadata('P69905', progressCallback);
+
+            expect(progressCallback).toHaveBeenCalledWith({
+                type: 'metadata_start',
+                message: 'Fetching protein information for P69905...'
+            });
+
+            expect(progressCallback).toHaveBeenCalledWith({
+                type: 'metadata_processing',
+                message: 'Processing protein information...'
+            });
+
+            expect(progressCallback).toHaveBeenCalledWith({
+                type: 'metadata_complete',
+                message: 'Protein information loaded successfully'
+            });
+        });
+
+        test('should provide context-specific error messages for metadata', async () => {
+            const notFoundError = new Error('Not Found');
+            notFoundError.status = 404;
+            fetch.mockRejectedValueOnce(notFoundError);
+
+            await expect(apiService.getProteinMetadata('P99999'))
+                .rejects.toThrow('Protein P99999 not found in UniProt database. Please verify the UniProt ID is correct.');
+        });
+
+        test('should validate UniProt ID format for metadata', async () => {
+            await expect(apiService.getProteinMetadata('invalid'))
+                .rejects.toThrow('Invalid UniProt ID format');
+        });
+    });});

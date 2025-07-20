@@ -30,13 +30,32 @@ class InfoComponent {
             // Show loading state
             this.showLoadingState();
             
+            // Create progress callback
+            const progressCallback = (progress) => {
+                this.updateInfoProgress(progress);
+            };
+            
             // Fetch protein metadata from UniProt API
-            const proteinData = await this.apiService.getProteinMetadata(uniprotId);
+            const proteinData = await this.apiService.getProteinMetadata(uniprotId, progressCallback);
             this.displayProteinDetails(proteinData);
             
         } catch (error) {
             console.error('Error fetching protein info:', error);
-            this.showError(`Failed to load protein information: ${error.message}`);
+            this.showDetailedError(error, uniprotId);
+        }
+    }
+
+    /**
+     * Update info loading progress
+     * @param {Object} progress - Progress information
+     */
+    updateInfoProgress(progress) {
+        const loadingContainer = this.infoContainer.querySelector('.loading-info');
+        if (!loadingContainer) return;
+        
+        const messageElement = loadingContainer.querySelector('p');
+        if (messageElement) {
+            messageElement.textContent = progress.message || 'Loading protein information...';
         }
     }
 
@@ -56,7 +75,7 @@ class InfoComponent {
             <div class="protein-details">
                 <div class="protein-header">
                     <h3>${proteinData.proteinName}</h3>
-                    <span class="uniprot-id-badge">${proteinData.uniprotId}</span>
+                    <span class="uniprot-id-badge" data-edu-tooltip="uniprot-id">${proteinData.uniprotId}</span>
                 </div>
                 
                 <div class="protein-info-grid">
@@ -173,7 +192,74 @@ class InfoComponent {
     }
 
     /**
-     * Initialize tooltip functionality
+     * Show detailed error with user guidance
+     * @param {Error} error - Error object
+     * @param {string} uniprotId - UniProt ID that failed
+     */
+    showDetailedError(error, uniprotId) {
+        let errorMessage = error.message || 'Failed to load protein information';
+        let userAction = 'Please try again or select a different protein.';
+        let suggestions = [];
+
+        // Provide specific guidance based on error type
+        if (error.message && error.message.includes('not found')) {
+            userAction = 'This protein may not exist in the UniProt database.';
+            suggestions = [
+                'Verify the UniProt ID is correct',
+                'Try searching for the protein by name instead',
+                'Check if the protein ID was copied correctly'
+            ];
+        } else if (error.message && error.message.includes('network') || error.message.includes('connection')) {
+            userAction = 'Please check your internet connection and try again.';
+            suggestions = [
+                'Check your internet connection',
+                'Try refreshing the page',
+                'Wait a moment and try again'
+            ];
+        } else if (error.message && error.message.includes('timeout')) {
+            userAction = 'The server may be busy. Please try again in a few moments.';
+            suggestions = [
+                'Wait 30-60 seconds and try again',
+                'Try a different protein',
+                'Check if your connection is stable'
+            ];
+        }
+
+        this.infoContainer.innerHTML = `
+            <div class="error-info-detailed">
+                <div class="error-header">
+                    <div class="error-icon">⚠️</div>
+                    <h3>Unable to Load Protein Information</h3>
+                </div>
+                <div class="error-content">
+                    <p class="error-message"><strong>Error:</strong> ${errorMessage}</p>
+                    <p class="error-action"><strong>What to do:</strong> ${userAction}</p>
+                    ${suggestions.length > 0 ? `
+                        <div class="error-suggestions">
+                            <h4>Suggestions:</h4>
+                            <ul>
+                                ${suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    <div class="error-protein-info">
+                        <p><strong>Protein ID:</strong> ${uniprotId}</p>
+                    </div>
+                </div>
+                <div class="error-actions">
+                    <button class="retry-btn" onclick="window.proteinApp.infoComponent.fetchProteinInfo('${uniprotId}')">
+                        Try Again
+                    </button>
+                    <button class="close-btn" onclick="this.closest('.error-info-detailed').parentElement.parentElement.style.display='none'">
+                        Close
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Initialize tooltip functionality with improved hover behavior
      */
     initializeTooltips() {
         const tooltipTriggers = this.infoContainer.querySelectorAll('.tooltip-trigger');
@@ -183,14 +269,34 @@ class InfoComponent {
             const tooltip = document.getElementById(tooltipId);
             
             if (tooltip) {
+                let hideTimeout;
+                
+                // Show tooltip on hover
                 trigger.addEventListener('mouseenter', () => {
+                    clearTimeout(hideTimeout);
                     this.showTooltip(tooltip, trigger);
                 });
                 
+                // Hide tooltip with delay when leaving trigger
                 trigger.addEventListener('mouseleave', () => {
-                    this.hideTooltip(tooltip);
+                    hideTimeout = setTimeout(() => {
+                        this.hideTooltip(tooltip);
+                    }, 300); // 300ms delay
                 });
                 
+                // Keep tooltip visible when hovering over it
+                tooltip.addEventListener('mouseenter', () => {
+                    clearTimeout(hideTimeout);
+                });
+                
+                // Hide tooltip when leaving tooltip area
+                tooltip.addEventListener('mouseleave', () => {
+                    hideTimeout = setTimeout(() => {
+                        this.hideTooltip(tooltip);
+                    }, 100); // Shorter delay when leaving tooltip
+                });
+                
+                // Toggle tooltip on click
                 trigger.addEventListener('click', (e) => {
                     e.preventDefault();
                     this.toggleTooltip(tooltip, trigger);
