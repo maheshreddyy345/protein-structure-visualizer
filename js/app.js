@@ -174,6 +174,15 @@ class ProteinVisualizerApp {
             console.log(`App received protein selection: ${proteinId}`);
             this.handleProteinSelection(proteinId);
         });
+
+        // Add click handler for app title to reset application
+        const appTitle = document.getElementById('app-title');
+        if (appTitle) {
+            appTitle.addEventListener('click', () => {
+                console.log('App title clicked - resetting application');
+                this.resetApplication();
+            });
+        }
     }
 
     /**

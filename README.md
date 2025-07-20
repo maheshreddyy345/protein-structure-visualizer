@@ -1,4 +1,4 @@
-# Protein Structure Visualizer
+# AlphaView
 
 A modern web-based protein structure visualization tool that integrates with the AlphaFold database to provide interactive 3D visualization of protein structures with confidence-based coloring.
 
@@ -83,8 +83,8 @@ A modern web-based protein structure visualization tool that integrates with the
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/maheshreddyy345/protein-structure-visualizer.git
-cd protein-structure-visualizer
+git clone https://github.com/maheshreddyy345/alphaview.git
+cd alphaview
 ```
 
 2. Install dependencies:

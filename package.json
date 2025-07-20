@@ -1,5 +1,5 @@
 {
-  "name": "protein-structure-visualizer",
+  "name": "alphaview",
   "version": "1.0.0",
   "description": "A web application for exploring protein structures from the AlphaFold database",
   "main": "index.html",

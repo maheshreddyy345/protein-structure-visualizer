@@ -209,14 +209,45 @@ class SearchComponent {
     selectProtein(proteinId) {
         console.log(`Protein selected: ${proteinId}`);
         
+        // Update visual state to show which protein is selected
+        this.updateSelectedProteinVisual(proteinId);
+        
         // Dispatch custom event for other components to listen to
         const event = new CustomEvent('proteinSelected', {
             detail: { proteinId }
         });
         document.dispatchEvent(event);
         
-        // Hide search results after selection
-        this.resultsContainer.style.display = 'none';
+        // Keep search results visible so users can select different proteins
+        // this.resultsContainer.style.display = 'none'; // Removed this line
+    }
+
+    /**
+     * Update visual state to show which protein is currently selected
+     * @param {string} selectedProteinId - ID of the selected protein
+     */
+    updateSelectedProteinVisual(selectedProteinId) {
+        // Remove previous selection styling
+        const previousSelected = this.resultsContainer.querySelectorAll('.result-item.selected');
+        previousSelected.forEach(item => {
+            item.classList.remove('selected');
+            const button = item.querySelector('.select-protein-btn');
+            if (button) {
+                button.textContent = 'Select Protein';
+                button.style.background = 'linear-gradient(135deg, #00ff88, #10b981)';
+            }
+        });
+        
+        // Add selection styling to current protein
+        const resultItems = this.resultsContainer.querySelectorAll('.result-item');
+        resultItems.forEach(item => {
+            const button = item.querySelector('.select-protein-btn');
+            if (button && button.dataset.proteinId === selectedProteinId) {
+                item.classList.add('selected');
+                button.textContent = 'Currently Selected';
+                button.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+            }
+        });
     }
 
     /**
