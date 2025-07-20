@@ -1,4 +1,4 @@
-# Optional Enhancements for Protein Structure Visualizer
+# Optional Enhancements for AlphaView
 
 ## 🎨 **Visual Improvements**
 - [ ] Add protein structure animations (rotation, breathing effects)

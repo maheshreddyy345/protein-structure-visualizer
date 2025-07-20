@@ -148,7 +148,7 @@ describe('Responsive Design Tests', () => {
         // Setup DOM
         document.body.innerHTML = `
             <header>
-                <h1>Protein Structure Visualizer</h1>
+                <h1>AlphaView</h1>
                 <p>Explore protein structures from the AlphaFold database</p>
             </header>
             <main>

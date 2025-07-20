@@ -405,7 +405,7 @@ class EducationalComponent {
                     border-bottom: 1px solid #eee;
                     padding-bottom: 1rem;
                 ">
-                    <h2 style="margin: 0;">How to Use the Protein Structure Visualizer</h2>
+                    <h2 style="margin: 0;">How to Use AlphaView</h2>
                     <button onclick="this.closest('.help-overlay').remove()" style="
                         background: none;
                         border: none;

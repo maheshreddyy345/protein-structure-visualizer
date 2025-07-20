@@ -207,7 +207,7 @@ describe('EducationalComponent', () => {
 
             const helpOverlay = document.getElementById('help-overlay');
             expect(helpOverlay).toBeTruthy();
-            expect(helpOverlay.innerHTML).toContain('How to Use the Protein Structure Visualizer');
+            expect(helpOverlay.innerHTML).toContain('How to Use AlphaView');
             expect(helpOverlay.innerHTML).toContain('Searching for Proteins');
             expect(helpOverlay.innerHTML).toContain('Understanding Confidence Scores');
         });

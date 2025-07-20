@@ -699,7 +699,7 @@ class ProteinVisualizerApp {
      * @param {string} state - Current navigation state
      */
     updatePageTitle(state) {
-        const baseTitle = 'Protein Structure Visualizer';
+        const baseTitle = 'AlphaView';
         
         switch (state) {
             case 'loaded':
