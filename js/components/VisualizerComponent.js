@@ -440,6 +440,9 @@ class VisualizerComponent {
         if (!this.viewer || !this.confidenceData) return;
         
         try {
+            // Clear existing styles first
+            this.viewer.setStyle({}, {});
+            
             // Create color function based on confidence scores
             const colorFunction = (atom) => {
                 // Find confidence data for this residue
@@ -457,25 +460,106 @@ class VisualizerComponent {
             };
             
             // Apply the style with confidence-based coloring
-            const styleOptions = {};
-            styleOptions[style] = {
-                colorfunc: colorFunction
-            };
-            
-            // Add opacity for surface style
             if (style === 'surface') {
-                styleOptions[style].opacity = 0.8;
+                // Surface style needs special handling with addSurface
+                this.viewer.setStyle({}, {cartoon: {hidden: true}});
+                
+                // Create surface with confidence-based coloring
+                this.viewer.addSurface($3Dmol.SurfaceType.MS, {
+                    opacity: 0.85,
+                    colorscheme: {
+                        prop: 'b', // Use B-factor (confidence score)
+                        map: (val) => {
+                            // Map confidence score to color
+                            if (val >= 90) return '#0053D6'; // Very High - Dark Blue
+                            if (val >= 70) return '#65CBF3'; // Confident - Light Blue  
+                            if (val >= 50) return '#FFDB13'; // Low - Yellow
+                            return '#FF7D45'; // Very Low - Orange
+                        }
+                    }
+                });
+            } else {
+                // For cartoon and stick styles, use regular setStyle
+                const styleOptions = {};
+                
+                if (style === 'cartoon') {
+                    styleOptions.cartoon = {
+                        colorfunc: colorFunction
+                    };
+                } else if (style === 'stick') {
+                    styleOptions.stick = {
+                        colorfunc: colorFunction
+                    };
+                }
+                
+                this.viewer.setStyle({}, styleOptions);
             }
             
-            this.viewer.setStyle({}, styleOptions);
+            // Render with appropriate timing
+            if (style === 'surface') {
+                // Surface needs more time to generate
+                setTimeout(() => {
+                    this.viewer.render();
+                }, 200);
+            } else {
+                this.viewer.render();
+            }
+            
             console.log(`Applied confidence-based ${style} coloring`);
             
         } catch (error) {
             console.error('Error applying confidence coloring:', error);
             // Fallback to spectrum coloring
-            const fallbackStyle = {};
-            fallbackStyle[style] = { color: 'spectrum' };
-            this.viewer.setStyle({}, fallbackStyle);
+            this.applyFallbackStyle(style);
+        }
+    }
+    
+    /**
+     * Apply fallback style when confidence coloring fails
+     * @param {string} style - Visualization style
+     */
+    applyFallbackStyle(style) {
+        try {
+            // Clear existing styles first
+            this.viewer.setStyle({}, {});
+            
+            if (style === 'surface') {
+                // Surface fallback using addSurface
+                this.viewer.setStyle({}, {cartoon: {hidden: true}});
+                this.viewer.addSurface($3Dmol.SurfaceType.MS, {
+                    opacity: 0.8,
+                    colorscheme: 'spectrum'
+                });
+                
+                setTimeout(() => {
+                    this.viewer.render();
+                }, 200);
+            } else {
+                // For cartoon and stick styles
+                const fallbackStyle = {};
+                
+                if (style === 'cartoon') {
+                    fallbackStyle.cartoon = { 
+                        color: 'spectrum' 
+                    };
+                } else if (style === 'stick') {
+                    fallbackStyle.stick = { 
+                        color: 'spectrum' 
+                    };
+                }
+                
+                this.viewer.setStyle({}, fallbackStyle);
+                this.viewer.render();
+            }
+            
+            console.log(`Applied fallback ${style} style`);
+        } catch (error) {
+            console.error('Error applying fallback style:', error);
+            // Ultimate fallback to cartoon
+            if (style !== 'cartoon') {
+                this.viewer.setStyle({}, {cartoon: {color: 'spectrum'}});
+                this.viewer.render();
+            }
         }
     }
 
@@ -1078,6 +1162,8 @@ class VisualizerComponent {
         if (!this.viewer) return;
         
         try {
+            console.log(`Updating visualization style to: ${style}`);
+            
             // Clear current style
             this.viewer.setStyle({}, {});
             
@@ -1090,28 +1176,68 @@ class VisualizerComponent {
                 this.applyConfidenceColoring(style);
             } else {
                 // Apply style with default coloring
-                const styleOptions = {};
-                switch (style) {
-                    case 'cartoon':
-                        styleOptions.cartoon = { color: 'lightblue' };
-                        break;
-                    case 'surface':
-                        styleOptions.surface = { color: 'lightblue', opacity: 0.8 };
-                        break;
-                    case 'stick':
-                        styleOptions.stick = { color: 'lightblue' };
-                        break;
-                    default:
-                        styleOptions.cartoon = { color: 'lightblue' };
-                }
-                this.viewer.setStyle({}, styleOptions);
+                this.applyDefaultStyle(style);
             }
             
-            this.viewer.render();
             console.log(`Visualization style updated to: ${style}`);
             
         } catch (error) {
             console.error('Error updating visualization style:', error);
+            // Try fallback
+            this.applyDefaultStyle(style);
+        }
+    }
+    
+    /**
+     * Apply default style without confidence coloring
+     * @param {string} style - Visualization style
+     */
+    applyDefaultStyle(style) {
+        try {
+            // Clear existing styles first
+            this.viewer.setStyle({}, {});
+            
+            if (style === 'surface') {
+                // Surface style needs special handling with addSurface
+                this.viewer.setStyle({}, {cartoon: {hidden: true}});
+                
+                // Add surface with default spectrum coloring
+                this.viewer.addSurface($3Dmol.SurfaceType.MS, {
+                    opacity: 0.85,
+                    colorscheme: 'whiteCarbon'
+                });
+            } else {
+                // For cartoon and stick styles, use regular setStyle
+                const styleOptions = {};
+                
+                switch (style) {
+                    case 'cartoon':
+                        styleOptions.cartoon = { color: 'spectrum' };
+                        break;
+                    case 'stick':
+                        styleOptions.stick = { color: 'spectrum' };
+                        break;
+                    default:
+                        styleOptions.cartoon = { color: 'spectrum' };
+                }
+                
+                this.viewer.setStyle({}, styleOptions);
+            }
+            
+            // Render with appropriate timing
+            if (style === 'surface') {
+                // Surface needs more time to generate
+                setTimeout(() => {
+                    this.viewer.render();
+                }, 200);
+            } else {
+                this.viewer.render();
+            }
+            
+            console.log(`Applied default ${style} style`);
+            
+        } catch (error) {
+            console.error('Error applying default style:', error);
         }
     }
 
