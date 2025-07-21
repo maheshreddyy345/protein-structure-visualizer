@@ -440,8 +440,9 @@ class VisualizerComponent {
         if (!this.viewer || !this.confidenceData) return;
         
         try {
-            // Clear existing styles first
+            // Clear existing styles AND surfaces first
             this.viewer.setStyle({}, {});
+            this.viewer.removeAllSurfaces();
             
             // Create color function based on confidence scores
             const colorFunction = (atom) => {
@@ -520,8 +521,9 @@ class VisualizerComponent {
      */
     applyFallbackStyle(style) {
         try {
-            // Clear existing styles first
+            // Clear existing styles AND surfaces first
             this.viewer.setStyle({}, {});
+            this.viewer.removeAllSurfaces();
             
             if (style === 'surface') {
                 // Surface fallback using addSurface
@@ -1164,8 +1166,9 @@ class VisualizerComponent {
         try {
             console.log(`Updating visualization style to: ${style}`);
             
-            // Clear current style
+            // Clear current style AND surfaces
             this.viewer.setStyle({}, {});
+            this.viewer.removeAllSurfaces();
             
             // Check if confidence colors are enabled
             const confidenceToggle = document.getElementById('confidence-colors');
@@ -1194,8 +1197,9 @@ class VisualizerComponent {
      */
     applyDefaultStyle(style) {
         try {
-            // Clear existing styles first
+            // Clear existing styles AND surfaces first
             this.viewer.setStyle({}, {});
+            this.viewer.removeAllSurfaces();
             
             if (style === 'surface') {
                 // Surface style needs special handling with addSurface
