@@ -7,6 +7,10 @@ class ProteinVisualizerApp {
         this.searchComponent = new SearchComponent(this.apiService);
         this.infoComponent = new InfoComponent(this.apiService);
         this.visualizerComponent = new VisualizerComponent(this.apiService);
+        // Discovery component for helping users find interesting proteins
+        this.discoveryComponent = new DiscoveryComponent(this.searchComponent);
+        // Make discovery component globally accessible for HTML onclick handlers
+        window.discoveryComponent = this.discoveryComponent;
         // Educational component will be initialized later after DOM is ready
         this.educationalComponent = null;
         

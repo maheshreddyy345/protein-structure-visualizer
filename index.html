@@ -214,6 +214,179 @@
         h1, h2 {
             color: #1a365d !important;
         }
+        
+        /* Discovery Section Styles */
+        .discovery-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 2px solid #cbd5e0;
+        }
+        
+        .discovery-intro {
+            font-size: 1.1rem;
+            color: #4a5568 !important;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        
+        .category-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .category-tab {
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .category-tab:hover {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+            transform: translateY(-2px);
+        }
+        
+        .category-tab.active {
+            background: linear-gradient(135deg, #0066ff, #8b5cf6);
+            color: white !important;
+            border-color: #0066ff;
+        }
+        
+        .protein-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .protein-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .protein-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-color: #0066ff;
+        }
+        
+        .protein-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #0066ff, #8b5cf6, #00ff88);
+        }
+        
+        .protein-card-emoji {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .protein-card-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a365d !important;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        
+        .protein-card-description {
+            color: #4a5568 !important;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .protein-card-fun-fact {
+            background: #f0f9ff;
+            border-left: 4px solid #0066ff;
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #1e40af !important;
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+        
+        .protein-card-search {
+            background: linear-gradient(135deg, #0066ff, #8b5cf6);
+            color: white !important;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+        
+        .protein-card-search:hover {
+            background: linear-gradient(135deg, #0052cc, #7c3aed);
+            transform: translateY(-1px);
+        }
+        
+        .random-button {
+            background: linear-gradient(135deg, #ff6b35, #f093fb);
+            color: white !important;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 2rem auto;
+            display: block;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+        
+        .random-button:hover {
+            transform: scale(1.05);
+            animation: none;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @media (max-width: 768px) {
+            .category-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .category-tab {
+                width: 200px;
+                text-align: center;
+            }
+            
+            .protein-cards {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
     <!-- 3Dmol.js library from CDN -->
     <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
@@ -225,6 +398,27 @@
     </header>
 
     <main>
+        <!-- Protein Discovery Section -->
+        <section id="discovery-section" class="section discovery-section">
+            <h2>🧬 Discover Amazing Proteins</h2>
+            <p class="discovery-intro">Not sure what to search for? Explore these fascinating proteins that power life on Earth!</p>
+            
+            <div class="discovery-categories">
+                <div class="category-tabs">
+                    <button class="category-tab active" data-category="essential">Essential to Life</button>
+                    <button class="category-tab" data-category="medical">Medical Importance</button>
+                    <button class="category-tab" data-category="unique">Unique & Cool</button>
+                    <button class="category-tab" data-category="random">Surprise Me!</button>
+                </div>
+                
+                <div class="protein-cards-container">
+                    <div id="protein-cards" class="protein-cards">
+                        <!-- Protein cards will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Search Section -->
         <section id="search-section" class="section">
             <h2>Search Proteins</h2>
@@ -297,6 +491,7 @@
     <script src="js/components/SearchComponent.js"></script>
     <script src="js/components/InfoComponent.js"></script>
     <script src="js/components/VisualizerComponent.js"></script>
+    <script src="js/components/DiscoveryComponent.js"></script>
     <script src="js/components/EducationalComponent.js"></script>
     <script src="js/app.js"></script>
 </body>
