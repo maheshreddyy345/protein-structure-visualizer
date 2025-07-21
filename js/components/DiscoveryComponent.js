@@ -169,30 +169,33 @@ class DiscoveryComponent {
         const container = document.getElementById('protein-cards');
         const proteins = this.proteinDatabase[category] || [];
         
+        // Render compact cards for the side panel
         container.innerHTML = proteins.map(protein => `
             <div class="protein-card" onclick="discoveryComponent.searchProtein('${protein.searchTerm}')">
                 <span class="protein-card-emoji">${protein.emoji}</span>
-                <h3 class="protein-card-name">${protein.name}</h3>
-                <p class="protein-card-description">${protein.description}</p>
-                <div class="protein-card-fun-fact">
-                    💡 Fun Fact: ${protein.funFact}
+                <div class="protein-card-content">
+                    <h3 class="protein-card-name">${protein.name}</h3>
+                    <p class="protein-card-description">${protein.description}</p>
+                    <div class="protein-card-fun-fact">
+                        💡 ${protein.funFact}
+                    </div>
+                    <button class="protein-card-search" onclick="event.stopPropagation(); discoveryComponent.searchProtein('${protein.searchTerm}')">
+                        Explore ${protein.name}
+                    </button>
                 </div>
-                <button class="protein-card-search" onclick="event.stopPropagation(); discoveryComponent.searchProtein('${protein.searchTerm}')">
-                    Explore ${protein.name}
-                </button>
             </div>
         `).join('');
         
-        // Add animation
+        // Add staggered animation
         setTimeout(() => {
             document.querySelectorAll('.protein-card').forEach((card, index) => {
                 card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
+                card.style.transform = 'translateX(20px)';
                 setTimeout(() => {
-                    card.style.transition = 'all 0.5s ease';
+                    card.style.transition = 'all 0.4s ease';
                     card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 100);
+                    card.style.transform = 'translateX(0)';
+                }, index * 80);
             });
         }, 50);
     }
@@ -232,19 +235,21 @@ class DiscoveryComponent {
         // Show random protein card with special styling
         const container = document.getElementById('protein-cards');
         container.innerHTML = `
-            <div class="protein-card" style="grid-column: 1 / -1; max-width: 500px; margin: 0 auto; border: 3px solid #ff6b35;">
-                <span class="protein-card-emoji" style="font-size: 3rem;">${randomProtein.emoji}</span>
-                <h3 class="protein-card-name" style="font-size: 1.5rem;">🎲 Random Discovery: ${randomProtein.name}</h3>
-                <p class="protein-card-description">${randomProtein.description}</p>
-                <div class="protein-card-fun-fact">
-                    💡 Fun Fact: ${randomProtein.funFact}
+            <div class="protein-card" style="border: 3px solid #ff6b35; background: linear-gradient(135deg, #fff5f0, #fef2f2);">
+                <span class="protein-card-emoji" style="font-size: 2.5rem; float: none; display: block; text-align: center; margin: 0 0 1rem 0;">${randomProtein.emoji}</span>
+                <div class="protein-card-content">
+                    <h3 class="protein-card-name" style="font-size: 1.2rem; text-align: center;">🎲 ${randomProtein.name}</h3>
+                    <p class="protein-card-description" style="text-align: center;">${randomProtein.description}</p>
+                    <div class="protein-card-fun-fact" style="background: #fef3c7; border-left-color: #f59e0b;">
+                        💡 ${randomProtein.funFact}
+                    </div>
+                    <button class="protein-card-search" onclick="discoveryComponent.searchProtein('${randomProtein.searchTerm}')" style="background: linear-gradient(135deg, #ff6b35, #f093fb); margin-bottom: 0.5rem;">
+                        Explore ${randomProtein.name}
+                    </button>
+                    <button class="protein-card-search" onclick="discoveryComponent.showRandomProtein()" style="background: linear-gradient(135deg, #10b981, #059669); font-size: 0.8rem;">
+                        🎲 Another Random!
+                    </button>
                 </div>
-                <button class="protein-card-search" onclick="discoveryComponent.searchProtein('${randomProtein.searchTerm}')" style="background: linear-gradient(135deg, #ff6b35, #f093fb);">
-                    Explore ${randomProtein.name}
-                </button>
-                <button class="random-button" onclick="discoveryComponent.showRandomProtein()" style="margin-top: 1rem;">
-                    🎲 Another Random Protein!
-                </button>
             </div>
         `;
         
