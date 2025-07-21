@@ -485,7 +485,8 @@ class VisualizerComponent {
                 
                 if (style === 'cartoon') {
                     styleOptions.cartoon = {
-                        colorfunc: colorFunction
+                        colorfunc: colorFunction,
+                        hidden: false  // Explicitly ensure cartoon is not hidden
                     };
                 } else if (style === 'stick') {
                     styleOptions.stick = {
@@ -542,7 +543,8 @@ class VisualizerComponent {
                 
                 if (style === 'cartoon') {
                     fallbackStyle.cartoon = { 
-                        color: 'spectrum' 
+                        color: 'spectrum',
+                        hidden: false  // Explicitly ensure cartoon is not hidden
                     };
                 } else if (style === 'stick') {
                     fallbackStyle.stick = { 
@@ -559,7 +561,7 @@ class VisualizerComponent {
             console.error('Error applying fallback style:', error);
             // Ultimate fallback to cartoon
             if (style !== 'cartoon') {
-                this.viewer.setStyle({}, {cartoon: {color: 'spectrum'}});
+                this.viewer.setStyle({}, {cartoon: {color: 'spectrum', hidden: false}});
                 this.viewer.render();
             }
         }
@@ -1216,13 +1218,19 @@ class VisualizerComponent {
                 
                 switch (style) {
                     case 'cartoon':
-                        styleOptions.cartoon = { color: 'spectrum' };
+                        styleOptions.cartoon = { 
+                            color: 'spectrum',
+                            hidden: false  // Explicitly ensure cartoon is not hidden
+                        };
                         break;
                     case 'stick':
                         styleOptions.stick = { color: 'spectrum' };
                         break;
                     default:
-                        styleOptions.cartoon = { color: 'spectrum' };
+                        styleOptions.cartoon = { 
+                            color: 'spectrum',
+                            hidden: false  // Explicitly ensure cartoon is not hidden
+                        };
                 }
                 
                 this.viewer.setStyle({}, styleOptions);
