@@ -240,7 +240,7 @@ class VisualizerComponent {
             <h3>Visualization Controls</h3>
             <div class="control-group">
                 <label>Style:</label>
-                <select id="style-selector" data-edu-tooltip="protein-visualization">
+                <select id="style-selector">
                     <option value="cartoon">Cartoon</option>
                     <option value="surface">Surface</option>
                     <option value="stick">Stick</option>
