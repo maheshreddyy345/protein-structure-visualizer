@@ -356,27 +356,29 @@
         }
         
         .discovery-panel {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
             padding: 3rem;
             display: flex;
             flex-direction: column;
             position: relative;
             overflow-y: auto;
             max-height: 700px;
+            border-left: 1px solid #e2e8f0;
         }
         
         .discovery-panel h2 {
             font-size: 2rem !important;
-            color: #1a365d !important;
+            color: #1a202c !important;
             margin-bottom: 0.5rem !important;
-            font-weight: 700 !important;
+            font-weight: 800 !important;
         }
         
         .discovery-intro {
-            color: #4a5568 !important;
-            font-size: 1rem;
+            color: #2d3748 !important;
+            font-size: 1.1rem !important;
             margin-bottom: 2rem;
             line-height: 1.5;
+            font-weight: 500 !important;
         }
         
         .category-tabs {
@@ -392,10 +394,10 @@
             border: 2px solid #e2e8f0;
             border-radius: 20px;
             cursor: pointer;
-            font-weight: 600;
-            color: #4a5568;
+            font-weight: 700 !important;
+            color: #2d3748 !important;
             transition: all 0.3s ease;
-            font-size: 0.85rem;
+            font-size: 0.9rem !important;
             white-space: nowrap;
         }
         
@@ -458,47 +460,76 @@
         }
         
         .protein-card-name {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #1a365d !important;
-            margin-bottom: 0.3rem;
+            font-size: 1.2rem !important;
+            font-weight: 800 !important;
+            color: #1a202c !important;
+            margin-bottom: 0.4rem !important;
             line-height: 1.3;
         }
         
         .protein-card-description {
-            color: #4a5568 !important;
-            font-size: 0.85rem;
-            line-height: 1.4;
-            margin-bottom: 0.8rem;
+            color: #2d3748 !important;
+            font-size: 0.95rem !important;
+            line-height: 1.5 !important;
+            margin-bottom: 0.8rem !important;
+            font-weight: 500 !important;
         }
         
         .protein-card-fun-fact {
-            background: #f0f9ff;
-            border-left: 3px solid #0066ff;
-            padding: 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            color: #1e40af !important;
+            background: #e6fffa !important;
+            border-left: 4px solid #0066ff !important;
+            padding: 0.6rem !important;
+            border-radius: 6px !important;
+            font-size: 0.85rem !important;
+            color: #1a202c !important;
             font-style: italic;
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.8rem !important;
+            font-weight: 500 !important;
         }
         
         .protein-card-search {
-            background: linear-gradient(135deg, #0066ff, #8b5cf6);
+            background: linear-gradient(135deg, #0066ff, #8b5cf6) !important;
             color: white !important;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            width: 100%;
-            transition: all 0.2s ease;
-            font-size: 0.85rem;
+            border: none !important;
+            padding: 0.7rem 1.2rem !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            font-weight: 700 !important;
+            width: 100% !important;
+            transition: all 0.2s ease !important;
+            font-size: 0.9rem !important;
         }
         
         .protein-card-search:hover {
             background: linear-gradient(135deg, #0052cc, #7c3aed);
             transform: translateY(-1px);
+        }
+        
+        /* Emergency Text Visibility Fixes */
+        .discovery-panel *,
+        .discovery-panel h2,
+        .discovery-panel p,
+        .discovery-intro,
+        .protein-card *,
+        .protein-card-name,
+        .protein-card-description,
+        .protein-card-fun-fact,
+        .category-tab {
+            color: #1a202c !important;
+            font-weight: 600 !important;
+        }
+        
+        .category-tab.active {
+            color: white !important;
+        }
+        
+        .protein-card-search {
+            color: white !important;
+        }
+        
+        .protein-card-fun-fact {
+            color: #0f172a !important;
+            background: #e6fffa !important;
         }
         
         /* Responsive Design */
